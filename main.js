@@ -10,10 +10,215 @@ const domElements = (function () {
     } 
 
     // Dom Elements List
-    const playCell = document.querySelectorAll('button.play-cell');
+    const getNodeList = function (nodeListName) {
+        // Store Nodes lists here
+        const nodeLists = {
+            playCell: document.querySelectorAll('button.play-cell'),
+            playerMarks: document.querySelectorAll('button.player-mark'),
+            modeBtns: document.querySelectorAll('button.mode')
+        }
 
-    return {addEvent, removeEvent, playCell}
+        return nodeLists[`${nodeListName}`];
+    }
+
+    const getElement = function (elementName) {
+        // Store Nodes/ Elements here
+        const elements = {
+            p1Mark: document.querySelector('button#p1-mark'),
+            p2Mark: document.querySelector('button#p2-mark'),
+
+            p1Input: document.querySelector('input#player1-name'),
+            p2Input: document.querySelector('input#player2-name')
+        }
+        
+        return elements[`${elementName}`];
+    }
+
+    return {addEvent, removeEvent, getNodeList, getElement}
 })();
+
+// Creates players
+const playerCreate = (function () {
+    
+    const _players = [];
+
+    const addPlayer = function (playerName, playerMark) {
+        const newPlayer = {playerName, playerMark};
+        _players.push(newPlayer);
+        return newPlayer
+    }
+
+    const getPLayers = function () {
+        return _players
+    }
+
+    return {addPlayer, getPLayers}
+
+})();
+
+// Create Game Mode (start) -
+const gameDetails = (function () {
+    
+    let gameMode = 'versus';
+    const player1 = {
+        name: 'x-player',
+        playerMark: 'x',
+        player: 'user'
+    };
+
+    const player2 = {
+        name: 'o-player',
+        playerMark: 'o',
+        player: 'user'
+    };
+ 
+    const setGameMode = function (modeSelected) {
+        gameMode = modeSelected;
+    }
+
+    const getGameMode = function () {
+        return gameMode;
+    }
+
+    const setPlayer1 = function (name, playerMark, user) {
+        player1.name = name;
+        player1.playerMark = playerMark;
+        player1.user = user;
+    }
+
+    const setPlayer2 = function (name, playerMark, user) {
+        player2.name = name;
+        player2.playerMark = playerMark;
+        player2.user = user;
+    }
+
+    const getPlayer1 = function () {
+        return player1
+    }
+
+    const getPlayer2 = function () {
+        return player2
+    }
+
+    return {
+        setGameMode, 
+        getGameMode,
+        setPlayer1, 
+        setPlayer2, 
+        getPlayer1, 
+        getPlayer2
+    }
+})();
+
+const createGameMode = function () {
+    const slider = document.querySelector('div#slider');
+    const modeSection = document.querySelector('section#mode-select');
+    const avatarSection = document.querySelector('section#avatar-select');
+    const playSection = document.querySelector('section#play-area');
+
+    slider.classList.add('mode-selected');
+
+    gameDetails.setGameMode(this.value);
+
+    console.log(gameDetails.getGameMode());
+
+}
+
+
+
+
+
+
+
+
+
+
+
+domElements.getNodeList('modeBtns').forEach(node => {
+    domElements.addEvent(node, 'click', createGameMode);
+});
+
+
+
+
+
+// Create Game Mode (end) -
+
+
+
+const changePlayerMark = function () {
+    const currentValue = this.value;
+    let altButton;
+    const p1Button = domElements.getElement('p1Mark');
+    const p2Button = domElements.getElement('p2Mark');
+
+    const p1Input = domElements.getElement('p1Input');
+    const p2Input = domElements.getElement('p2Input');
+
+    let currentInput;
+    let altInput;
+    let currentLabel;
+    let altLabel;
+
+    if (this === p1Button) {
+        altButton = p2Button;
+        currentInput = p1Input;
+        altInput = p2Input;
+        
+    } else if (this === p2Button) {
+        altButton = p1Button;
+        currentInput = p2Input;
+        altInput = p1Input;
+    }
+
+    if (currentValue === 'x') {
+        this.value = 'o';
+        altButton.value = 'x';
+
+        currentInput.setAttribute('placeholder', 'o-player');
+        altInput.setAttribute('placeholder', 'x-player');
+
+    } else if (currentValue === 'o') {
+        this.value = 'x';
+        altButton.value = 'o';
+
+        currentInput.setAttribute('placeholder', 'x-player');
+        altInput.setAttribute('placeholder', 'o-player');
+
+    }
+
+
+    if (this.getAttribute('data-flip') === 'flip') {
+        this.setAttribute('data-flip', 'reverse');
+        altButton.setAttribute('data-flip', 'flip');
+    } else if (this.getAttribute('data-flip') === 'reverse') {
+        this.setAttribute('data-flip', 'flip');
+        altButton.setAttribute('data-flip', 'reverse');
+    }
+}
+
+
+
+
+// Adds event listeners to player mark
+domElements.getNodeList('playerMarks').forEach(node => {
+    domElements.addEvent(node, 'click', changePlayerMark);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Sets player turn function
 const playerTurnFlag = (function () {
@@ -44,30 +249,8 @@ const playBoard = (function () {
         row3: ["", "", ""]
     }
 
-    const _xPlayBoard = {
-        row1: ["", "", ""],
-        row2: ["", "", ""],
-        row3: ["", "", ""]
-    }
-
-    const _oPlayBoard = {
-        row1: ["", "", ""],
-        row2: ["", "", ""],
-        row3: ["", "", ""]
-    }
-
-
-    const getPlayBoard = function (required) {
-
-        let set = _playBoard;
-
-        if (required === 'x') {
-            set = _xPlayBoard;
-        } else if (required === 'o') {
-            set = _oPlayBoard;
-        }
-
-        return set;
+    const getPlayBoard = function () {
+        return _playBoard;
     }
 
     const setPlayBoard = function (row, column, input) {
@@ -75,18 +258,7 @@ const playBoard = (function () {
         const cellCol = Number(column) - 1;
         const playerMark = input;
 
-        if (playerMark === 'x') {
-            _xPlayBoard[`${cellRow}`].splice(cellCol, 1, playerMark);
-        } else if (playerMark === 'o') {
-            _oPlayBoard[`${cellRow}`].splice(cellCol, 1, playerMark);
-        }
-
         _playBoard[`${cellRow}`].splice(cellCol, 1, playerMark);
-
-        // console.log(_playBoard);
-        // console.log(_xPlayBoard);
-        // console.log(_oPlayBoard);
-
     }
 
     return {getPlayBoard, setPlayBoard}
@@ -200,14 +372,14 @@ const markCell = function () {
 
     // Removes Access to board on win
     if (winner !== 'noWinner') {
-        domElements.playCell.forEach(node => {
+        domElements.getNodeList('playCell').forEach(node => {
             domElements.removeEvent(node, 'mouseenter', changeTurnMark);
             domElements.removeEvent(node, 'mouseleave', changeTurnMark);
             domElements.removeEvent(node, 'click', markCell);
         });
     }
 
-    // Removes event listeners to cell on mark
+    // Removes event listeners to cell that is marked
     this.removeEventListener('click', markCell);
     this.removeEventListener('mouseenter', changeTurnMark);
     this.removeEventListener('mouseleave', changeTurnMark);
@@ -218,9 +390,10 @@ const markCell = function () {
 }
 
 // Adds event listeners to the cells
-domElements.playCell.forEach(node => {
+domElements.getNodeList('playCell').forEach(node => {
     domElements.addEvent(node, 'mouseenter', changeTurnMark);
     domElements.addEvent(node, 'mouseleave', changeTurnMark);
     domElements.addEvent(node, 'click', markCell);
 });
+
 

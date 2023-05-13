@@ -8,6 +8,7 @@
     <meta name="description" content="A tic-tac-toe Webpage">
     <link rel="stylesheet" href="style.css">
     <script src="main.js" defer></script>
+    <script src="https://kit.fontawesome.com/ff4bf87dd5.js" crossorigin="anonymous"></script>
     <title>Tic-Tac-Toe</title>
 </head>
 <body>
@@ -16,27 +17,82 @@
     </header>
 
     <main>
-        <section id="play-area">
-            <div class="board-row" id="row-1">
-                <button class="play-cell" data-row="row1" data-col="1"></button>
-                <button class="play-cell" data-row="row1" data-col="2"></button>
-                <button class="play-cell" data-row="row1" data-col="3"></button>
-            </div>
+        <div id="slider">
 
-            <div class="board-row" id="row-2">
-                <button class="play-cell" data-row="row2" data-col="1"></button>
-                <button class="play-cell" data-row="row2" data-col="2"></button>
-                <button class="play-cell" data-row="row2" data-col="3"></button>
-            </div>
-
-            <div class="board-row" id="row-3">
-                <button class="play-cell" data-row="row3" data-col="1"></button>
-                <button class="play-cell" data-row="row3" data-col="2"></button>
-                <button class="play-cell" data-row="row3" data-col="3"></button>
-            </div>
-        </section>
+            <section id="mode-select">
+                <h3>- Select Mode -</h3>
+                
+                    <button class="mode" value="versus">VERSUS</button>
+                
+                    <button class="mode" value="random">RANDOM</button>
+    
+                    <button class="mode" value="minimax">MINIMAX</button>
+            </section>
+    
+            <section id="avatar-select">
+                <h3>- Edit Players -</h3>
+                <form id='edit-player' action="">
+                    <div class="players" id="player1">
+                        <button 
+                            type="button"
+                            class="player-mark" 
+                            id="p1-mark" 
+                            value="x"
+                            data-flip="flip">
+                        </button>
+                        <label for="player1-name">Enter Player 1 Name</label>
+                        <input 
+                            type="text" 
+                            id="player1-name" 
+                            placeholder="x-player"
+                            maxlength="12">
+                    </div>
+    
+                    <div class="players" id="player2">
+                        <button 
+                            type="button"
+                            class="player-mark" 
+                            id="p2-mark" 
+                            value="o"
+                            data-flip="reverse">
+                        </button>
+                        <label for="player2-name">Enter Player 2 Name</label>
+                        <input 
+                            type="text" 
+                            id="player2-name" 
+                            placeholder="o-player"
+                            maxlength="12">
+                    </div>
+    
+                    <button id="start">START</button>
+    
+                </form>
+            </section>
+    
+            <section id="play-area">
+                <div class="board-row" id="row-1">
+                    <button class="play-cell" data-row="row1" data-col="1"></button>
+                    <button class="play-cell" data-row="row1" data-col="2"></button>
+                    <button class="play-cell" data-row="row1" data-col="3"></button>
+                </div>
+    
+                <div class="board-row" id="row-2">
+                    <button class="play-cell" data-row="row2" data-col="1"></button>
+                    <button class="play-cell" data-row="row2" data-col="2"></button>
+                    <button class="play-cell" data-row="row2" data-col="3"></button>
+                </div>
+    
+                <div class="board-row" id="row-3">
+                    <button class="play-cell" data-row="row3" data-col="1"></button>
+                    <button class="play-cell" data-row="row3" data-col="2"></button>
+                    <button class="play-cell" data-row="row3" data-col="3"></button>
+                </div>
+            </section>
+        </div>
     </main>
 
-    <footer></footer>
+    <footer>
+
+    </footer>
 </body>
 </html>
