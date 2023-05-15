@@ -29,9 +29,16 @@
                     <button class="mode" value="minimax">MINIMAX</button>
             </section>
     
-            <section id="avatar-select">
+            <section id="edit-player">
+                <div id="banner">
+                    <button id="back-mode" title="Back to Mode Select">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <p id="game-mode">VERSUS MODE</p>
+                </div>
+                
                 <h3>- Edit Players -</h3>
-                <form id='edit-player' action="">
+                <form id='edit-form' action="">
                     <div class="players" id="player1">
                         <button 
                             type="button"
@@ -64,29 +71,51 @@
                             maxlength="12">
                     </div>
     
-                    <button id="start">START</button>
+                    <button type="button" id="start">START</button>
     
                 </form>
             </section>
     
             <section id="play-area">
-                <div class="board-row" id="row-1">
-                    <button class="play-cell" data-row="row1" data-col="1"></button>
-                    <button class="play-cell" data-row="row1" data-col="2"></button>
-                    <button class="play-cell" data-row="row1" data-col="3"></button>
-                </div>
+
+                <div id="turn-banner">
+
+                    <div class="banner" data-player="x" data-shown="shown" id="p1-banner">
+                        <div id="p1-avatar" class="avatar">
+                            <p>X</p>
+                        </div>
+                        <p id="p1-turn-name">x-player's turn</p> 
+                    </div>
     
-                <div class="board-row" id="row-2">
-                    <button class="play-cell" data-row="row2" data-col="1"></button>
-                    <button class="play-cell" data-row="row2" data-col="2"></button>
-                    <button class="play-cell" data-row="row2" data-col="3"></button>
+                    <div class="banner" data-player="o" data-shown="hidden" id="p2-banner">
+                        <p id="p2-turn-name">o-player's turn</p> 
+                        <div id="p2-avatar" class="avatar">
+                            <p>O</p>
+                        </div>
+                    </div>
                 </div>
-    
-                <div class="board-row" id="row-3">
-                    <button class="play-cell" data-row="row3" data-col="1"></button>
-                    <button class="play-cell" data-row="row3" data-col="2"></button>
-                    <button class="play-cell" data-row="row3" data-col="3"></button>
+
+
+                <div id="board">
+                    <div class="board-row" id="row-1">
+                        <button class="play-cell" data-row="row1" data-col="1"></button>
+                        <button class="play-cell" data-row="row1" data-col="2"></button>
+                        <button class="play-cell" data-row="row1" data-col="3"></button>
+                    </div>
+        
+                    <div class="board-row" id="row-2">
+                        <button class="play-cell" data-row="row2" data-col="1"></button>
+                        <button class="play-cell" data-row="row2" data-col="2"></button>
+                        <button class="play-cell" data-row="row2" data-col="3"></button>
+                    </div>
+        
+                    <div class="board-row" id="row-3">
+                        <button class="play-cell" data-row="row3" data-col="1"></button>
+                        <button class="play-cell" data-row="row3" data-col="2"></button>
+                        <button class="play-cell" data-row="row3" data-col="3"></button>
+                    </div>
                 </div>
+
             </section>
         </div>
     </main>

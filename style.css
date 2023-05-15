@@ -25,19 +25,30 @@
     --off-white: #F6F1F1;
     --dark-green: #2E4F4F;
     --dark-pink: #9E4784;
+    --bg-color: rgba(5, 23, 37, 0.9);
 
     --yellow-contrast: #FDBE34;
 }
 
+button:hover {
+    cursor: pointer;
+}
+
 body {
     background-color: var(--darkest-color);
+    /* background-image: url(./images/bg.gif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: none; */
 }
 
 header {
     text-align: center;
-    padding: var(--common-padding);
+    padding: calc(var(--common-padding) * 2);
     font-size: var(--title-font-size);
-    margin: var(--common-margin);
+    /* margin: var(--common-margin) 0; */
+    background-color: rgba(5, 23, 37, 0.9);
+    /* height: 10vh; */
 }
 
 header h1 {
@@ -57,6 +68,8 @@ main {
     padding-top: calc(var(--common-margin) * 2);
     display: flex;
     overflow-x: hidden;
+    background-color: var(--bg-color);
+    /* height: 90vh; */
 }
 
 div#slider {
@@ -66,6 +79,7 @@ div#slider {
     flex: 0 0 100%;
     
     width: 300vw;
+    height: max-content;
     transition: all 0.3s ease-in-out;
 }
 
@@ -74,7 +88,7 @@ section#mode-select {
     width: 100vw;
 }
 
-section#avatar-select {
+section#edit-player {
     width: 100vw;
 }
 
@@ -86,6 +100,11 @@ section#play-area {
 
 div#slider.mode-selected {
     transform: translateX(-100vw);
+}
+
+/* Players were edited, user is shown the board */
+div#slider.mode-selected.game-start {
+    transform: translateX(-200vw);
 }
 
 
@@ -100,8 +119,7 @@ section#mode-select {
     justify-content: flex-start;
 }
 
-section#mode-select h3,
-section#avatar-select h3 {
+section#mode-select h3 {
     font-family: var(--stylized-font);
     font-size: calc(var(--common-font-size) * 1.3);
     color: var(--neon-yellow);
@@ -125,7 +143,6 @@ button.mode {
 }
 
 button.mode:hover {
-    cursor: pointer;
     transform: translate(5px, -1px);
     box-shadow: -5px 2px 5px 1px var(--neon-cyan);
 }
@@ -140,21 +157,71 @@ button.mode:active {
 
 
 /* EDIT PLAYERS (start) */
-section#avatar-select {
+section#edit-player {
     /* width: 100%; */
-    height: 50vh;
+    /* height: 50vh; */
     margin: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-section#avatar-select form {
+div#banner {
+    width: 100%;
+    margin: var(--common-margin);
+    position: relative;
+    
+}
+
+button#back-mode {
+    font-size: calc(var(--common-font-size) * 1.5);
+    padding: var(--common-padding);
+    position: absolute;
+    left: 30px;
+    background-color: transparent;
+    border: none;
+    color: var(--neon-magenta);
+}
+
+button#back-mode:hover {
+   /* color: var(--dark-pink); */
+   text-shadow: 0 0 10px var(--neon-magenta);
+}
+
+button#back-mode:active {
+    transform: scale(1.1);
+}
+
+section#edit-player p#game-mode{
+    font-family: var(--stylized-font);
+    color: var(--off-white);
+    text-shadow: 0 0 3px var(--neon-cyan);
+    font-size: calc(var(--common-font-size) * 1.5);
+    width: 100%;
+    text-align: center;
+    padding: var(--common-padding);
+    background: linear-gradient(0.25turn,
+        var(--darkest-color),
+        var(--dark-blue),
+        var(--darkest-color)
+    );
+}
+
+section#edit-player h3 {
+    font-family: var(--stylized-font);
+    font-size: calc(var(--common-font-size) * 1.1);
+    color: var(--neon-yellow);
+    margin-bottom: calc(var(--common-margin) * 1.5);
+}
+
+
+section#edit-player form {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: calc(var(--common-margin) * 2);
     align-items: center;
+    padding: var(--common-padding);
 }
 
 div.players {
@@ -165,26 +232,25 @@ div.players {
     grid-template-columns: max-content max-content;
     align-items: center;
     justify-content: center;
+    gap: calc(var(--common-margin) * 0.5);
 }
 
 button.player-mark {
     grid-row: 1 / 3;
     grid-column: 1 / 2;
-    width: 60px;
-    height: 60px;
+    width: calc(40px + 1vw);
+    height: calc(40px + 1vw);
     
     border-radius: 50%;
     background-color: var(--darkest-color);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    margin: var(--common-margin);
-    margin-left: 0;
+    margin: calc(var(--common-margin) * 0.5);
 }
 
 button#p2-mark {
     grid-column: 2 / 3;
-    margin: var(--common-margin);
 }
 
 button[data-flip='flip'] {
@@ -212,18 +278,18 @@ button[value='o'] {
     box-shadow: 0 0 5px 1px var(--neon-cyan);
 }
 
-form#edit-player label, 
-form#edit-player input {
+form#edit-form label, 
+form#edit-form input {
     font-size: var(--common-font-size);
     padding: calc(var(--common-padding) * 0.5);
 } 
 
-form#edit-player label {
+form#edit-form label {
     color: var(--neon-yellow);
     align-self: end;
 }
 
-form#edit-player input {
+form#edit-form input {
     width: 100%; 
     border: 1px solid var(--neon-cyan);
     border-radius: 10px 0 10px 0;
@@ -234,8 +300,13 @@ form#edit-player input {
     padding-left: calc(var(--common-padding) * 2);
 }
 
-form#edit-player input::placeholder {
+form#edit-form input::placeholder {
     font-family: var(--stylized-font);
+}
+
+form#edit-form input:disabled {
+    background-color: var(--darkest-color);
+    border-color: var(--dark-blue);
 }
 
 button#start {
@@ -269,8 +340,131 @@ button#start {
 section#play-area {
     /* border: 1px solid black; */
     display: grid; 
-    grid-template-rows: repeat(3, max-content);
+    grid-template-columns: 1fr;
+    padding: var(--common-padding) 0;
+    row-gap: var(--common-margin);
+}
 
+div#turn-banner {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+div.banner {
+    display: flex;
+    align-items: center;
+    gap: var(--common-margin);
+    transition: all 0.1s ease-in-out;
+}
+
+div#p2-banner {
+    justify-content: flex-end;
+}
+
+div.banner p {
+    font-size: calc(var(--common-font-size) * 1.3);
+    font-family: var(--stylized-font);
+    color: var(--off-white);
+
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+div.avatar {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+div.avatar p {
+    vertical-align: middle;
+    font-size: calc(var(--common-font-size) * 3);
+    font-family: var(--common-font);
+    font-weight: bolder;
+    color: var(--darkest-color);
+    text-shadow: 0 0 5px var(--off-white);
+
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Shows and hides player turn banner (start) - */
+div#p1-banner[data-shown="hidden"][data-player="o"],
+div#p1-banner[data-shown="hidden"][data-player="x"] {
+    width: 0;
+    background: none;
+}
+
+div#p1-banner[data-shown="shown"][data-player="o"],
+div#p1-banner[data-shown="shown"][data-player="x"] {
+    width: 100%;
+}
+
+div#p2-banner[data-shown="hidden"][data-player="o"],
+div#p2-banner[data-shown="hidden"][data-player="x"] {
+    width: 0;
+    background: none;
+}
+
+div#p2-banner[data-shown="shown"][data-player="o"],
+div#p2-banner[data-shown="shown"][data-player="x"] {
+    width: 100%;
+}
+
+
+/* Shows and hides player turn banner (end) - */
+
+div#p1-banner[data-player="o"] {
+    background: linear-gradient(0.25turn,
+        rgba(0, 234, 211, 0.9),
+        rgba(0, 234, 211, 0.5),
+        var(--darkest-color));
+}
+
+div#p1-banner[data-player="x"] {
+    background: linear-gradient(0.25turn,
+        rgba(255, 68, 159, 0.9),
+        rgba(255, 68, 159, 0.5),
+        var(--darkest-color));
+}
+
+div#p2-banner[data-player="o"] {
+    background: linear-gradient(0.75turn,
+        rgba(0, 234, 211, 0.9),
+        rgba(0, 234, 211, 0.5),
+        var(--darkest-color));
+}
+
+div#p2-banner[data-player="x"] {
+    background: linear-gradient(0.75turn,
+        rgba(255, 68, 159, 0.9),
+        rgba(255, 68, 159, 0.5),
+        var(--darkest-color));
+}
+
+
+
+div#p1-banner {
+    grid-column: 1 / 2;
+    padding-left: calc(var(--common-padding) * 2);
+}
+
+div#p2-banner {
+    grid-column: 2 / 3;
+    justify-self: end;
+    padding-right: calc(var(--common-padding) * 2);
+}
+
+div#board {
+    grid-column: 1 / 3; 
+
+    display: grid; 
+    grid-template-rows: repeat(3, max-content);
 }
 
 div.board-row {

@@ -1,16 +1,7 @@
 const domElements = (function () {
 
-    // Adds Event Listener Method
-    const addEvent  = function (domElement, event, assignedFunc) {
-        domElement.addEventListener(event, assignedFunc);
-    }
-
-    const removeEvent  = function (domElement, event, assignedFunc) {
-        domElement.removeEventListener(event, assignedFunc);
-    } 
-
     // Dom Elements List
-    const getNodeList = function (nodeListName) {
+    const getNodeList = function () {
         // Store Nodes lists here
         const nodeLists = {
             playCell: document.querySelectorAll('button.play-cell'),
@@ -18,155 +9,214 @@ const domElements = (function () {
             modeBtns: document.querySelectorAll('button.mode')
         }
 
-        return nodeLists[`${nodeListName}`];
+        return nodeLists;
     }
 
-    const getElement = function (elementName) {
+    const getElement = function () {
         // Store Nodes/ Elements here
         const elements = {
             p1Mark: document.querySelector('button#p1-mark'),
             p2Mark: document.querySelector('button#p2-mark'),
 
+            p1Label: document.querySelector('label[for="player1-name"]'),
+            p2Label: document.querySelector('label[for="player2-name"]'),
+
             p1Input: document.querySelector('input#player1-name'),
-            p2Input: document.querySelector('input#player2-name')
+            p2Input: document.querySelector('input#player2-name'),
+
+            slider: document.querySelector('div#slider'),
+            backModeBtn: document.querySelector('button#back-mode'),
+
+            startBtn: document.querySelector('button#start'),
+
+            p1TurnBanner: document.querySelector('div#p1-banner'),
+            p2TurnBanner: document.querySelector('div#p2-banner'),
+
+            p1TurnName: document.querySelector('p#p1-turn-name'),
+            p2TurnName: document.querySelector('p#p2-turn-name'),
+
+            p1Avatar: document.querySelector('div#p1-avatar p'),
+            p2Avatar: document.querySelector('div#p2-avatar p'),
         }
         
-        return elements[`${elementName}`];
+        return elements;
     }
 
-    return {addEvent, removeEvent, getNodeList, getElement}
+    return {getNodeList, getElement}
 })();
 
 // Creates players
-const playerCreate = (function () {
+// const playerCreate = (function () {
     
-    const _players = [];
+//     const _players = [];
 
-    const addPlayer = function (playerName, playerMark) {
-        const newPlayer = {playerName, playerMark};
-        _players.push(newPlayer);
-        return newPlayer
-    }
+//     const addPlayer = function (playerName, playerMark) {
+//         const newPlayer = {playerName, playerMark};
+//         _players.push(newPlayer);
+//         return newPlayer
+//     }
 
-    const getPLayers = function () {
-        return _players
-    }
+//     const getPLayers = function () {
+//         return _players
+//     }
 
-    return {addPlayer, getPLayers}
+//     return {addPlayer, getPLayers}
 
-})();
+// })();
 
 // Create Game Mode (start) -
 const gameDetails = (function () {
-    
-    let gameMode = 'versus';
-    const player1 = {
-        name: 'x-player',
-        playerMark: 'x',
-        player: 'user'
-    };
+    const defineGame = {
+        gameMode: 'versus',
+        
+        player1: {
+            name: 'x-player',
+            playerMark: 'x',
+            player: 'user'
+        },
 
-    const player2 = {
-        name: 'o-player',
-        playerMark: 'o',
-        player: 'user'
+        player2: {
+            name: 'o-player',
+            playerMark: 'o',
+            player: 'user'
+        }
     };
  
     const setGameMode = function (modeSelected) {
-        gameMode = modeSelected;
+        defineGame.gameMode = modeSelected;
     }
 
     const getGameMode = function () {
-        return gameMode;
+        return defineGame.gameMode;
     }
 
     const setPlayer1 = function (name, playerMark, user) {
-        player1.name = name;
-        player1.playerMark = playerMark;
-        player1.user = user;
+        defineGame.player1.name = name;
+        defineGame.player1.playerMark = playerMark;
+        defineGame.player1.player = user;
     }
 
     const setPlayer2 = function (name, playerMark, user) {
-        player2.name = name;
-        player2.playerMark = playerMark;
-        player2.user = user;
+        defineGame.player2.name = name;
+        defineGame.player2.playerMark = playerMark;
+        defineGame.player2.player = user;
     }
 
-    const getPlayer1 = function () {
-        return player1
-    }
-
-    const getPlayer2 = function () {
-        return player2
+    const getGameDetails = function () {
+        return defineGame;
     }
 
     return {
         setGameMode, 
         getGameMode,
         setPlayer1, 
-        setPlayer2, 
-        getPlayer1, 
-        getPlayer2
+        setPlayer2,
+        getGameDetails
     }
 })();
 
-const createGameMode = function () {
-    const slider = document.querySelector('div#slider');
-    const modeSection = document.querySelector('section#mode-select');
-    const avatarSection = document.querySelector('section#avatar-select');
-    const playSection = document.querySelector('section#play-area');
 
+const chooseGameMode = function () {
+    const modeSelected = this.value
+    const {slider} = domElements.getElement();
+    const {backModeBtn} = domElements.getElement();
+
+    // const modeSection = document.querySelector('section#mode-select');
+    // const avatarSection = document.querySelector('section#avatar-select');
+    // const playSection = document.querySelector('section#play-area');
+
+    const {p1Mark} = domElements.getElement();
+    const {p2Mark} = domElements.getElement();
+
+    const {p1Label} = domElements.getElement();
+    const {p2Label} = domElements.getElement();
+
+    const {p1Input} = domElements.getElement();
+    const {p2Input} = domElements.getElement();
+
+    //  Changes gameMode in the gameDetails Obj
+    gameDetails.setGameMode(modeSelected);
+
+    // Adds back to mode Select function (start) --
+    const backModeSelect = function () {
+        // Slides back to mode select screen
+        slider.classList.remove('mode-selected');
+
+        // Revert changes in edit players screen to default upon back
+        const setDefaultPlayers = (function () {
+            p1Mark.value = 'x';
+            p2Mark.value = 'o';
+            
+            p1Mark.setAttribute('data-flip', 'flip');
+            p2Mark.setAttribute('data-flip', 'reverse');
+
+            p1Label.textContent = 'Enter Player 1 Name';
+            p2Label.textContent = 'Enter Player 2 Name';
+
+            p1Input.setAttribute('placeholder', 'x-player');
+            p2Input.setAttribute('placeholder', 'o-player');
+
+            p1Input.value = '';
+            p2Input.value = '';
+
+            p2Input.disabled = false;
+
+            gameDetails.setPlayer1('x-player', 'x', 'user');
+            gameDetails.setPlayer1('o-player', 'o', 'user');
+            gameDetails.setGameMode('versus');
+
+        })();
+
+        // Remove event listener on back
+        backModeBtn.removeEventListener('click', backModeSelect);
+    }
+
+    backModeBtn.addEventListener('click', backModeSelect);
+    // Adds back to mode Select function (end) --
+
+    // Changes UI to edit player screen
     slider.classList.add('mode-selected');
 
-    gameDetails.setGameMode(this.value);
+    // Changes mode banner for edit player screen depending on gameMode
+    const modeBanner = document.querySelector('p#game-mode');
+    const capitalizedMode = `${modeSelected[0].toUpperCase()}${modeSelected.slice(1)}`;
+    modeBanner.textContent = (`${capitalizedMode} Mode`);
 
-    console.log(gameDetails.getGameMode());
+    if (modeSelected === 'random' || modeSelected === 'minimax') {
+        p1Label.textContent = 'Enter Player Name';
+        p2Label.textContent = 'A.I. Name';
+
+        if (modeSelected === 'random') {
+            p2Input.value = 'Mr. Randomizer';
+            p2Input.disabled = true;
+        } else if (modeSelected === 'minimax') {
+            p2Input.value = 'Ms. Unbeatable';
+            p2Input.disabled = true;
+        }
+    }
 
 }
 
-
-
-
-
-
-
-
-
-
-
-domElements.getNodeList('modeBtns').forEach(node => {
-    domElements.addEvent(node, 'click', createGameMode);
-});
-
-
-
-
-
 // Create Game Mode (end) -
-
-
-
-const changePlayerMark = function () {
+const changePlayerDetails = function () {
     const currentValue = this.value;
     let altButton;
-    const p1Button = domElements.getElement('p1Mark');
-    const p2Button = domElements.getElement('p2Mark');
+    const {p1Mark} = domElements.getElement();
+    const {p2Mark} = domElements.getElement();
 
-    const p1Input = domElements.getElement('p1Input');
-    const p2Input = domElements.getElement('p2Input');
+    const {p1Input} = domElements.getElement();
+    const {p2Input} = domElements.getElement();
 
     let currentInput;
     let altInput;
-    let currentLabel;
-    let altLabel;
 
-    if (this === p1Button) {
-        altButton = p2Button;
+    if (this === p1Mark) {
+        altButton = p2Mark;
         currentInput = p1Input;
         altInput = p2Input;
         
-    } else if (this === p2Button) {
-        altButton = p1Button;
+    } else if (this === p2Mark) {
+        altButton = p1Mark;
         currentInput = p2Input;
         altInput = p1Input;
     }
@@ -184,10 +234,9 @@ const changePlayerMark = function () {
 
         currentInput.setAttribute('placeholder', 'x-player');
         altInput.setAttribute('placeholder', 'o-player');
-
     }
 
-
+    // Adds animation to player mark buttons
     if (this.getAttribute('data-flip') === 'flip') {
         this.setAttribute('data-flip', 'reverse');
         altButton.setAttribute('data-flip', 'flip');
@@ -197,23 +246,99 @@ const changePlayerMark = function () {
     }
 }
 
+// Collect Data from user input and change gameDetails Obj to start game
+const startGame = function () {
+
+    // Set Player 1
+    let p1Name = domElements.getElement().p1Input.value;
+    const p1Mark = domElements.getElement().p1Mark.value;
+
+    let p2Name = domElements.getElement().p2Input.value;
+    const p2Mark = domElements.getElement().p2Mark.value;
+
+    // Sets p2 to computer if not versus mode
+    let p2Player = 'user';
+    if (gameDetails.getGameMode() !== 'versus') {
+        p2Player = 'computer';
+    }
+
+    // Sets name to default if no name was entered
+    if (p1Name.length === 0) { 
+        p1Name = domElements.getElement().p1Input.getAttribute('placeholder');
+    }
+
+    if (p2Name.length === 0) {
+        p2Name = domElements.getElement().p2Input.getAttribute('placeholder');
+    }
+
+    // Sets the players in the gameDetails Obj
+    gameDetails.setPlayer1(p1Name, p1Mark, 'user');
+    gameDetails.setPlayer2(p2Name, p2Mark, p2Player);
+
+    // Slides to play board screen
+    domElements.getElement().slider.classList.add('game-start');
 
 
+    // Setup game screen depending on gameMode
+    const setupGameBoard = (function () {
+        const gameMode = gameDetails.getGameDetails();
 
-// Adds event listeners to player mark
-domElements.getNodeList('playerMarks').forEach(node => {
-    domElements.addEvent(node, 'click', changePlayerMark);
-});
+        const player1Mark = gameMode.player1.playerMark;
+        const player2Mark = gameMode.player2.playerMark;
+
+        console.log(gameMode);
+
+        console.log(gameMode.player1.name);
+
+        const {
+            p1TurnBanner,
+            p2TurnBanner,
+            p1TurnName,
+            p2TurnName,
+            p1Avatar,
+            p2Avatar } = domElements.getElement();
+
+        // Sets player name on the banner
+        p1TurnName.textContent = `${gameMode.player1.name}'s turn`;
+        p2TurnName.textContent = `${gameMode.player2.name}'s turn`;
+
+        // Sets avatar/ playerMark on the banner
+        p1Avatar.textContent = `${player1Mark.toUpperCase()}`;
+        p2Avatar.textContent = `${player2Mark.toUpperCase()}`;
+   
+        // Styles Banner according to mark
+        const styleBanner = function (banner, mark) {
+            if (mark === 'x') {
+                banner.setAttribute('data-player', 'x')
+    
+            } else if (mark === 'o') {
+                banner.setAttribute('data-player', 'o')
+            }
+        }
+
+        styleBanner(p1TurnBanner, player1Mark);
+        styleBanner(p2TurnBanner, player2Mark);
 
 
+        // Show banner on x-player's side on start
+        // Note: x-player always have first move
+        const p1XPlayer = p1TurnBanner.getAttribute('data-player') === 'x';
+        const p2XPlayer = p2TurnBanner.getAttribute('data-player') === 'x';
 
+        const showDefaultBanner = function (xPlayer, banner) {
+            if (xPlayer) {
+                banner.setAttribute('data-shown', 'shown');
+            } else {
+                banner.setAttribute('data-shown', 'hidden');
+            }
+        }
 
+        showDefaultBanner(p1XPlayer, p1TurnBanner);
+        showDefaultBanner(p2XPlayer, p2TurnBanner);
 
+    })();
 
-
-
-
-
+}
 
 
 
@@ -270,6 +395,8 @@ const checkWin = (function () {
     let _winDetected = false;
     let _winner = 'noWinner';
 
+    const winningCells = [];
+
     const detectWinner = function (cellRow, cellCol, playerMark, currentPlayBoard) {
         // Note: Change cellCol to Array Index
         const cellColIndex = Number(cellCol) - 1;
@@ -280,6 +407,12 @@ const checkWin = (function () {
                 currentPlayBoard[`${cellRow}`][1] === playerMark &&
                 currentPlayBoard[`${cellRow}`][2] === playerMark) {
                     _winDetected = true;
+
+                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='1']`));
+                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='2']`));
+                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='3']`));
+
+                console.log(winningCells);
             }
         })();
 
@@ -309,7 +442,6 @@ const checkWin = (function () {
                     _winDetected = true;
             }
         })();
-
 
         // Return player mark if winner is detected
         if (_winDetected) {
@@ -368,14 +500,15 @@ const markCell = function () {
     
     const currentPlayBoard = playBoard.getPlayBoard(playerMark);
 
+    // Checks for winner
     const winner = checkWin.detectWinner(cellRow, cellCol, playerMark, currentPlayBoard);
 
     // Removes Access to board on win
     if (winner !== 'noWinner') {
-        domElements.getNodeList('playCell').forEach(node => {
-            domElements.removeEvent(node, 'mouseenter', changeTurnMark);
-            domElements.removeEvent(node, 'mouseleave', changeTurnMark);
-            domElements.removeEvent(node, 'click', markCell);
+        domElements.getNodeList().playCell.forEach(node => {
+            node.removeEventListener('mouseenter', changeTurnMark);
+            node.removeEventListener('mouseleave', changeTurnMark);
+            node.removeEventListener('click', markCell);
         });
     }
 
@@ -387,13 +520,45 @@ const markCell = function () {
     // Change player
     playerTurnFlag.changePlayerTurn();
 
+    // Shows Turn Change UI
+    const shownTurnChange = (function () {
+        const newPlayer = playerTurnFlag.getPlayerTurn();
+    
+        const oldPlayerBanner = document.querySelector(`div[data-player='${playerMark}']`);
+        const newPlayerBanner = document.querySelector(`div[data-player='${newPlayer}']`);
+        
+        oldPlayerBanner.setAttribute('data-shown', 'hidden');
+        newPlayerBanner.setAttribute('data-shown', 'shown');
+    })();
+
 }
 
-// Adds event listeners to the cells
-domElements.getNodeList('playCell').forEach(node => {
-    domElements.addEvent(node, 'mouseenter', changeTurnMark);
-    domElements.addEvent(node, 'mouseleave', changeTurnMark);
-    domElements.addEvent(node, 'click', markCell);
-});
+
+const addEventFunctions = (function () {
+    // Mode Buttons
+    domElements.getNodeList().modeBtns.forEach(node => {
+        node.addEventListener ('click', chooseGameMode);
+    });
+
+    // Adds event listeners to player mark
+    domElements.getNodeList().playerMarks.forEach(node => {
+        node.addEventListener ('click', changePlayerDetails);
+     });
+
+
+    //  Start Button
+    domElements.getElement().startBtn.addEventListener('click', startGame);
+
+    // Adds event listeners to the cells
+    domElements.getNodeList().playCell.forEach(node => {
+        node.addEventListener('mouseenter', changeTurnMark);
+        node.addEventListener('mouseleave', changeTurnMark);
+        node.addEventListener('click', markCell)
+    });
+
+})();
+
+
+
 
 
