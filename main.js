@@ -395,7 +395,7 @@ const checkWin = (function () {
     let _winDetected = false;
     let _winner = 'noWinner';
 
-    const winningCells = [];
+    const _winningCells = [];
 
     const detectWinner = function (cellRow, cellCol, playerMark, currentPlayBoard) {
         // Note: Change cellCol to Array Index
@@ -408,11 +408,10 @@ const checkWin = (function () {
                 currentPlayBoard[`${cellRow}`][2] === playerMark) {
                     _winDetected = true;
 
-                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='1']`));
-                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='2']`));
-                winningCells.push(document.querySelector(`button[data-row='${cellRow}'][data-col='3']`));
-
-                console.log(winningCells);
+                for (let i = 1; i <= 3; i++) {
+                    const cell = document.querySelector(`button[data-row='${cellRow}'][data-col='${i}']`);
+                    _winningCells.push(cell);
+                }
             }
         })();
 
@@ -422,6 +421,11 @@ const checkWin = (function () {
                 currentPlayBoard.row2[cellColIndex] === playerMark &&
                 currentPlayBoard.row3[cellColIndex] === playerMark) {
                     _winDetected = true;
+
+                for (let i = 1; i <= 3; i++) {
+                    const cell = document.querySelector(`button[data-row='row${i}'][data-col='${cellCol}']`);
+                    _winningCells.push(cell);
+                }
             }
         })();
 
@@ -431,6 +435,11 @@ const checkWin = (function () {
                 currentPlayBoard.row2[1] === playerMark &&
                 currentPlayBoard.row3[2] === playerMark) {
                     _winDetected = true;
+
+                for (let i = 1; i <= 3; i++) {
+                    const cell = document.querySelector(`button[data-row='row${i}'][data-col='${i}']`);
+                    _winningCells.push(cell);
+                }
             }
         })();
 
@@ -440,6 +449,12 @@ const checkWin = (function () {
                 currentPlayBoard.row2[1] === playerMark &&
                 currentPlayBoard.row3[0] === playerMark) {
                     _winDetected = true;
+
+                for (let i = 1; i <= 3; i++) {
+                    const cell = document.querySelector(`button[data-row='row${i}'][data-col='${4 - i}']`);
+                    _winningCells.push(cell);
+                }
+
             }
         })();
 
@@ -451,7 +466,22 @@ const checkWin = (function () {
         return _winner;
     }
 
-    return {detectWinner};
+    const getWinningCells = function () {
+        return _winningCells;
+    }
+
+    // Add UI changes/ highlight winning cells
+    const showWinningCells = function () {
+        _winningCells.forEach(cell => {
+            cell.setAttribute('data-win', 'win');
+        });
+
+        console.log(_winningCells);
+    }
+
+
+
+    return {detectWinner, getWinningCells, showWinningCells};
 })();
 
 
@@ -502,6 +532,7 @@ const markCell = function () {
 
     // Checks for winner
     const winner = checkWin.detectWinner(cellRow, cellCol, playerMark, currentPlayBoard);
+    checkWin.showWinningCells();
 
     // Removes Access to board on win
     if (winner !== 'noWinner') {
@@ -529,6 +560,22 @@ const markCell = function () {
         
         oldPlayerBanner.setAttribute('data-shown', 'hidden');
         newPlayerBanner.setAttribute('data-shown', 'shown');
+
+        if (winner !== 'noWinner') {
+
+            const winnerBanner = document.querySelector(`div[data-player='${winner}']`);
+            const winnerName = winnerBanner.querySelector('p.turn-name');
+            const winnerMessage = `${winnerName.textContent.slice(0, -7)} Wins!`;
+            oldPlayerBanner.setAttribute('data-shown', 'hidden');
+            newPlayerBanner.setAttribute('data-shown', 'hidden');
+
+            setTimeout(()=> {
+                winnerBanner.setAttribute('data-shown', 'shown');
+                winnerName.textContent = winnerMessage;
+            }, 300);
+            
+
+        }
     })();
 
 }
