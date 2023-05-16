@@ -120,7 +120,7 @@ const gameDetails = (function () {
     }
 })();
 
-
+// Select game mode from buttons
 const chooseGameMode = function () {
     const modeSelected = this.value
     const {slider} = domElements.getElement();
@@ -291,10 +291,6 @@ const startGame = function () {
         const player1Mark = gameMode.player1.playerMark;
         const player2Mark = gameMode.player2.playerMark;
 
-        console.log(gameMode);
-
-        console.log(gameMode.player1.name);
-
         const {
             p1TurnBanner,
             p2TurnBanner,
@@ -323,7 +319,6 @@ const startGame = function () {
 
         styleBanner(p1TurnBanner, player1Mark);
         styleBanner(p2TurnBanner, player2Mark);
-
 
         // Show banner on x-player's side on start
         // Note: x-player always have first move
@@ -365,16 +360,20 @@ const playerTurnFlag = (function () {
         return _playerTurn;
     }
 
-    return {changePlayerTurn, getPlayerTurn}
+    const resetPlayerTurn = function () {
+        _playerTurn = 'x';
+    }
+
+    return {changePlayerTurn, getPlayerTurn, resetPlayerTurn}
 })();
 
 
 const playBoard = (function () {
     
     const _playBoard = {
-        row1: ["", "", ""],
-        row2: ["", "", ""],
-        row3: ["", "", ""]
+        row1: ['', '', ''],
+        row2: ['', '', ''],
+        row3: ['', '', '']
     }
 
     const getPlayBoard = function () {
@@ -389,7 +388,40 @@ const playBoard = (function () {
         _playBoard[`${cellRow}`].splice(cellCol, 1, playerMark);
     }
 
-    return {getPlayBoard, setPlayBoard}
+    // Resets playBoard Values
+    const resetPlayBoard = function () {
+        for (let i = 1; i <= 3; i++ ) {
+            _playBoard[`row${i}`] = ['', '', ''];
+        }
+
+        // Removes marks on the playboard
+        const {playCell} = domElements.getNodeList();
+
+        playCell.forEach(cell => {
+            const xMarked = cell.getAttribute('class').includes('x-marked');
+            const oMarked = cell.getAttribute('class').includes('o-marked');
+
+            // Removes player Marks
+            if (xMarked) {
+                cell.classList.remove('x-marked');
+            } else if (oMarked) {
+                cell.classList.remove('o-marked');
+            }
+
+            // Removes win indicator
+            const winMarked = cell.hasAttribute('data-win');
+
+            if (winMarked) {
+                cell.removeAttribute('data-win');
+            }
+
+        });
+
+        return _playBoard;
+    }
+
+
+    return {getPlayBoard, setPlayBoard, resetPlayBoard}
 
 })();
 
@@ -398,7 +430,7 @@ const checkWin = (function () {
     let _winDetected = false;
     let _winner = 'noWinner';
 
-    const _winningCells = [];
+    let _winningCells = [];
 
     const detectWinner = function (cellRow, cellCol, playerMark, currentPlayBoard) {
         // Note: Change cellCol to Array Index
@@ -469,34 +501,43 @@ const checkWin = (function () {
         return _winner;
     }
 
-    const getWinningCells = function () {
-        return _winningCells;
-    }
-
     // Add UI changes/ highlight winning cells
-    const showWinningCells = function () {
-        _winningCells.forEach(cell => {
-            cell.setAttribute('data-win', 'win');
-        });
-
-        
-
-        console.log(_winningCells);
-    }
-
-    const enlargeOptions = function (enlarge) {
-        const {optionsCont, boardCont } = domElements.getElement();
-       
-        if (enlarge) {
-            optionsCont.setAttribute('data-class', 'enlarge');
-            boardCont.setAttribute('data-class', 'minimize');
+    const showWinningCells = function (show) {
+        if (show) {
+            _winningCells.forEach(cell => {
+                cell.setAttribute('data-win', 'win');
+            });
         } else {
-            optionsCont.setAttribute('data-class', '');
-            boardCont.setAttribute('data-class', '');
+            _winningCells.forEach(cell => {
+                cell.removeAttribute('data-win');
+            });
         }
     }
 
-    return {detectWinner, getWinningCells, showWinningCells, enlargeOptions};
+    // Adds UI indication/ enlarges options when win is detected
+    const enlargeOptions = function (enlarge) {
+        const {optionsCont, boardCont } = domElements.getElement();
+       
+        setTimeout(() => {
+            if (enlarge) {
+                optionsCont.setAttribute('data-class', 'enlarge');
+                boardCont.setAttribute('data-class', 'minimize');
+            } else {
+                optionsCont.setAttribute('data-class', '');
+                boardCont.setAttribute('data-class', '');
+            }
+        }, 400);
+    }
+
+    const resetWin = function () {
+        _winner = 'noWinner';
+        _winDetected = false;
+        _winningCells = [];
+
+        showWinningCells(false);
+    }
+
+    return {detectWinner, showWinningCells, enlargeOptions, resetWin};
 })();
 
 
@@ -557,7 +598,7 @@ const markCell = function () {
         });
 
         // UI change to winning cells and enlarge options 
-        checkWin.showWinningCells();
+        checkWin.showWinningCells(true);
         checkWin.enlargeOptions(true);
 
     }
@@ -596,6 +637,53 @@ const markCell = function () {
 
         }
     })();
+}
+
+//  Reset game board on click of reset button
+const resetBoard = function () {
+
+    console.log(playBoard.getPlayBoard());
+    console.log(playBoard.resetPlayBoard());
+
+    // Removes marks on board
+    playBoard.resetPlayBoard();
+
+    // Add new eventListeners to NodeList of cells/ buttons
+    const {playCell} = domElements.getNodeList();
+
+    playCell.forEach(node => {
+        node.addEventListener('mouseenter', hoverOnCell);
+        node.addEventListener('mouseleave', hoverOnCell);
+        node.addEventListener('click', markCell)
+    });
+
+    
+    // Reset to first turn, x-player always turn first
+    playerTurnFlag.resetPlayerTurn();
+
+    // Resets winning conditions
+    checkWin.resetWin();
+
+    // Return playBoard to original size if minimized and
+    // Return options to original size if enlarged
+    checkWin.enlargeOptions(false);
+
+    // Adds reset animation
+    playCell.forEach(node => {
+
+        // Add timeout to remove other dataset before adding new dataset
+        // Note: fixes animation bug
+        setTimeout(() => {
+            node.setAttribute('data-reset', 'reset');
+        }, 50);
+
+        setTimeout(() => {
+            node.removeAttribute('data-reset');
+        }, 800);
+    });
+
+    // Starts game
+    startGame();
 
 }
 
@@ -621,6 +709,8 @@ const addEventFunctions = (function () {
         node.addEventListener('mouseleave', hoverOnCell);
         node.addEventListener('click', markCell)
     });
+
+    domElements.getElement().resetBtn.addEventListener('click', resetBoard);
 
 })();
 
