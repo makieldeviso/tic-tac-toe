@@ -409,7 +409,6 @@ div#p1-banner[data-shown="hidden"][data-player="o"],
 div#p1-banner[data-shown="hidden"][data-player="x"] {
     width: 0;
     padding: 0;
-    background: none;
 }
 
 div#p1-banner[data-shown="shown"][data-player="o"],
@@ -421,7 +420,6 @@ div#p2-banner[data-shown="hidden"][data-player="o"],
 div#p2-banner[data-shown="hidden"][data-player="x"] {
     width: 0;
     padding: 0;
-    background: none;
 }
 
 div#p2-banner[data-shown="shown"][data-player="o"],

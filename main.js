@@ -683,7 +683,15 @@ const resetBoard = function () {
     });
 
     // Starts game
-    startGame();
+    domElements.getElement().p1TurnBanner.setAttribute('data-shown', 'hidden');
+    domElements.getElement().p2TurnBanner.setAttribute('data-shown', 'hidden');
+
+    setTimeout(() => {
+        startGame();
+    }, 700);
+
+
+    
 
 }
 
