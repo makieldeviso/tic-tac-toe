@@ -37,6 +37,11 @@ const domElements = (function () {
 
             p1Avatar: document.querySelector('div#p1-avatar p'),
             p2Avatar: document.querySelector('div#p2-avatar p'),
+
+            boardCont: document.querySelector('div#board'), 
+            optionsCont: document.querySelector('div#options'),
+            resetBtn: document.querySelector('button#reset'),
+            returnModeBtn: document.querySelector('button#return-mode')
         }
         
         return elements;
@@ -343,8 +348,6 @@ const startGame = function () {
 
 
 
-
-
 // Sets player turn function
 const playerTurnFlag = (function () {
 
@@ -476,17 +479,29 @@ const checkWin = (function () {
             cell.setAttribute('data-win', 'win');
         });
 
+        
+
         console.log(_winningCells);
     }
 
+    const enlargeOptions = function (enlarge) {
+        const {optionsCont, boardCont } = domElements.getElement();
+       
+        if (enlarge) {
+            optionsCont.setAttribute('data-class', 'enlarge');
+            boardCont.setAttribute('data-class', 'minimize');
+        } else {
+            optionsCont.setAttribute('data-class', '');
+            boardCont.setAttribute('data-class', '');
+        }
+    }
 
-
-    return {detectWinner, getWinningCells, showWinningCells};
+    return {detectWinner, getWinningCells, showWinningCells, enlargeOptions};
 })();
 
 
 // Change UI on mouse hover
-const changeTurnMark = function (e) {
+const hoverOnCell = function (e) {
 
     // Detect Player Turn
     const currentPlayerTurn = playerTurnFlag.getPlayerTurn();
@@ -532,21 +547,25 @@ const markCell = function () {
 
     // Checks for winner
     const winner = checkWin.detectWinner(cellRow, cellCol, playerMark, currentPlayBoard);
-    checkWin.showWinningCells();
-
-    // Removes Access to board on win
+    
     if (winner !== 'noWinner') {
+        // Removes Access to board on win
         domElements.getNodeList().playCell.forEach(node => {
-            node.removeEventListener('mouseenter', changeTurnMark);
-            node.removeEventListener('mouseleave', changeTurnMark);
+            node.removeEventListener('mouseenter', hoverOnCell);
+            node.removeEventListener('mouseleave', hoverOnCell);
             node.removeEventListener('click', markCell);
         });
+
+        // UI change to winning cells and enlarge options 
+        checkWin.showWinningCells();
+        checkWin.enlargeOptions(true);
+
     }
 
     // Removes event listeners to cell that is marked
     this.removeEventListener('click', markCell);
-    this.removeEventListener('mouseenter', changeTurnMark);
-    this.removeEventListener('mouseleave', changeTurnMark);
+    this.removeEventListener('mouseenter', hoverOnCell);
+    this.removeEventListener('mouseleave', hoverOnCell);
 
     // Change player
     playerTurnFlag.changePlayerTurn();
@@ -598,8 +617,8 @@ const addEventFunctions = (function () {
 
     // Adds event listeners to the cells
     domElements.getNodeList().playCell.forEach(node => {
-        node.addEventListener('mouseenter', changeTurnMark);
-        node.addEventListener('mouseleave', changeTurnMark);
+        node.addEventListener('mouseenter', hoverOnCell);
+        node.addEventListener('mouseleave', hoverOnCell);
         node.addEventListener('click', markCell)
     });
 
