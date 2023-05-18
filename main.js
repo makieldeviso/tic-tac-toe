@@ -15,6 +15,8 @@ const domElements = (function () {
     const getElement = function () {
         // Store Nodes/ Elements here
         const elements = {
+            playArea: document.querySelector('section#play-area'),
+
             p1Mark: document.querySelector('button#p1-mark'),
             p2Mark: document.querySelector('button#p2-mark'),
 
@@ -251,6 +253,40 @@ const changePlayerDetails = function () {
     }
 }
 
+// Sets player turn function
+const playerTurnFlag = (function () {
+
+    const playerMarks = ['x', 'o'];
+
+    let _playerTurn = 'x';
+
+    const rollFirstTurn = function () {
+        return playerMarks[Math.floor(Math.random() * 2)];
+    }
+
+    const changePlayerTurn = function () {
+        if (_playerTurn === 'x') {
+            _playerTurn = 'o';
+        } else if (_playerTurn === 'o') {
+            _playerTurn = 'x';
+        }
+    }
+
+    const setPlayerTurn = function(mark) {
+        _playerTurn = mark;
+    }
+
+    const getPlayerTurn = function () {
+        return _playerTurn;
+    }
+
+    const resetPlayerTurn = function () {
+        _playerTurn = rollFirstTurn();
+    }
+
+    return {changePlayerTurn, getPlayerTurn, resetPlayerTurn, rollFirstTurn, setPlayerTurn}
+})();
+
 // Collect Data from user input and change gameDetails Obj to start game
 const startGame = function () {
 
@@ -322,8 +358,9 @@ const startGame = function () {
 
         // Show banner on x-player's side on start
         // Note: x-player always have first move
-        const p1XPlayer = p1TurnBanner.getAttribute('data-player') === 'x';
-        const p2XPlayer = p2TurnBanner.getAttribute('data-player') === 'x';
+        playerTurnFlag.setPlayerTurn(playerTurnFlag.rollFirstTurn());
+        const p1XPlayer = p1TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
+        const p2XPlayer = p2TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
 
         const showDefaultBanner = function (xPlayer, banner) {
             if (xPlayer) {
@@ -339,33 +376,6 @@ const startGame = function () {
     })();
 
 }
-
-
-
-
-// Sets player turn function
-const playerTurnFlag = (function () {
-
-    let _playerTurn = 'x';
-
-    const changePlayerTurn = function () {
-        if (_playerTurn === 'x') {
-            _playerTurn = 'o';
-        } else if (_playerTurn === 'o') {
-            _playerTurn = 'x';
-        }
-    }
-
-    const getPlayerTurn = function () {
-        return _playerTurn;
-    }
-
-    const resetPlayerTurn = function () {
-        _playerTurn = 'x';
-    }
-
-    return {changePlayerTurn, getPlayerTurn, resetPlayerTurn}
-})();
 
 
 const playBoard = (function () {
@@ -630,11 +640,12 @@ const markCell = function () {
             newPlayerBanner.setAttribute('data-shown', 'hidden');
 
             setTimeout(()=> {
+                winnerBanner.setAttribute('data-win', 'win');
                 winnerBanner.setAttribute('data-shown', 'shown');
                 winnerName.textContent = winnerMessage;
+
             }, 300);
             
-
         }
     })();
 }
@@ -682,17 +693,23 @@ const resetBoard = function () {
         }, 800);
     });
 
-    // Starts game
+    // UI animation to hide banners first before restarting
     domElements.getElement().p1TurnBanner.setAttribute('data-shown', 'hidden');
     domElements.getElement().p2TurnBanner.setAttribute('data-shown', 'hidden');
 
+    // Remove win UI
+    domElements.getElement().p1TurnBanner.setAttribute('data-win', 'no-win');
+    domElements.getElement().p2TurnBanner.setAttribute('data-win', 'no-win');
+    setTimeout(() => {
+        domElements.getElement().p1TurnBanner.removeAttribute('data-win');
+        domElements.getElement().p2TurnBanner.removeAttribute('data-win');
+    }, 300);
+
+
+    // Starts game
     setTimeout(() => {
         startGame();
     }, 700);
-
-
-    
-
 }
 
 

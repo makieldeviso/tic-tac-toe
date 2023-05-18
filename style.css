@@ -381,7 +381,7 @@ div.banner p {
 }
 
 div.avatar {
-    width: 50px;
+    width: max-content;
     height: 50px;
     display: flex;
     align-items: center;
@@ -389,16 +389,17 @@ div.avatar {
 
     overflow: hidden;
     white-space: nowrap;
-
 }
 
 div.avatar p {
     vertical-align: middle;
-    font-size: calc(var(--common-font-size) * 3);
+    font-size: calc(var(--common-font-size) * 8);
     font-family: var(--common-font);
     font-weight: bolder;
     color: var(--darkest-color);
     text-shadow: 0 0 5px var(--off-white);
+    padding: 0 var(--common-padding);
+    width: 100%;
 
     white-space: nowrap;
     /* overflow: hidden; */
@@ -426,6 +427,37 @@ div#p2-banner[data-shown="shown"][data-player="o"],
 div#p2-banner[data-shown="shown"][data-player="x"] {
     width: 100%;
 }
+
+/* Enlarge winner banner */
+div#p1-banner[data-win="win"] {
+    justify-content: center;
+}
+
+div#p2-banner[data-win="win"] {
+    justify-content: center;
+    padding: 0;
+    flex-direction: row-reverse;
+}
+
+div#p1-banner[data-win="win"] p.turn-name,
+div#p2-banner[data-win="win"] p.turn-name {
+    font-size: calc(var(--common-font-size) * 1.5);
+}
+
+div#p1-banner[data-win="no-win"],
+div#p2-banner[data-win="no-win"] {
+    filter: opacity(0);
+}
+
+div#p2-banner[data-win="no-win"] {
+    flex-direction: row-reverse;
+}
+
+
+
+
+
+
 
 
 /* Shows and hides player turn banner (end) - */
@@ -478,6 +510,8 @@ div#board {
     margin-top: calc(var(--common-margin) * 2);
     width: 100%;
     transition: all 1s ease-in-out;
+    gap: 3px;
+    
 }
 
 div#board[data-class='minimize'] {
@@ -490,12 +524,13 @@ div.board-row {
     display: grid;
     grid-template-columns: repeat(3, 100px);
     margin: auto;
+    gap: 3px;
 }
 
 button.play-cell {
     width: 100px;
     height: 100px;
-    border: 1px solid white;
+    border: 1px solid #487094;
     background-color: black;
     background-position: center;
     background-size: cover;
@@ -516,10 +551,12 @@ button.play-cell[data-reset="reset"] {
 
 button.play-cell.x-marked {
     background-image: url(./images/x-mark.png);
+    box-shadow: inset 0 0 10px var(--neon-magenta);
 }
 
 button.play-cell.o-marked {
     background-image: url(./images/o-mark.png);
+    box-shadow: inset 0 0 10px var(--neon-cyan);
 }
 
 button.play-cell[data-win="win"] {
@@ -570,15 +607,17 @@ button.play-cell div.button-bg {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    opacity: 0.3;
+    opacity: 0.5;
 }
 
 div.button-bg.x-hovered {
     background-image: url(./images/x-mark.png);
+    box-shadow: inset 0 0 10px var(--neon-magenta);
 }
 
 div.button-bg.o-hovered {
     background-image: url(./images/o-mark.png);
+    box-shadow: inset 0 0 10px var(--neon-cyan);
 }
 
 div#options {
