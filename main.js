@@ -40,6 +40,10 @@ const domElements = (function () {
             p1Avatar: document.querySelector('div#p1-avatar p'),
             p2Avatar: document.querySelector('div#p2-avatar p'),
 
+            scoreBoard: document.querySelector('div#score-board'),
+            p1Score: document.querySelector('p#p1-score'),
+            p2Score: document.querySelector('p#p2-score'),
+
             boardCont: document.querySelector('div#board'), 
             optionsCont: document.querySelector('div#options'),
             resetBtn: document.querySelector('button#reset'),
@@ -79,14 +83,21 @@ const gameDetails = (function () {
         player1: {
             name: 'x-player',
             playerMark: 'x',
-            player: 'user'
+            player: 'user',
+            score: 0
         },
 
         player2: {
             name: 'o-player',
             playerMark: 'o',
-            player: 'user'
-        }
+            player: 'user',
+            score: 0
+        },
+
+        matches: 0,
+
+        lastWinner: ''
+
     };
  
     const setGameMode = function (modeSelected) {
@@ -109,15 +120,64 @@ const gameDetails = (function () {
         defineGame.player2.player = user;
     }
 
+    const logMatches = function (matchNumber) {
+        if (arguments.length === 0) {
+            defineGame.matches = gameDetails.getMatches() + 1;
+        } else if (matchNumber === 'reset') {
+            defineGame.matches = 0;
+        }
+    }
+
+    const getMatches = function () {
+        return defineGame.matches;
+    }
+
     const getGameDetails = function () {
         return defineGame;
     }
 
+    const setLastWinner = function (winner) {
+        defineGame.lastWinner = winner;
+    }
+
+    const getLastWinner = function () {
+        return defineGame.lastWinner;
+    }
+
+    const logScore = function (player) {
+        if (player === 'p1') {
+            defineGame.player1.score = gameDetails.getScore("p1") + 1;
+        } else if (player === 'p2') {
+            defineGame.player2.score = gameDetails.getScore("p2") + 1;
+        } else if (player === 'reset') {
+            defineGame.player1.score = 0;
+            defineGame.player2.score = 0;
+        }
+    }
+
+    const getScore = function (player) {
+        let playerScore;
+
+        if (player === 'p1') {
+            playerScore = defineGame.player1.score;
+        } else if (player === 'p2') {
+            playerScore = defineGame.player2.score;
+        }
+        return playerScore;
+    }
+
+    
     return {
         setGameMode, 
         getGameMode,
         setPlayer1, 
         setPlayer2,
+        logMatches,
+        getMatches,
+        setLastWinner,
+        getLastWinner,
+        logScore,
+        getScore,
         getGameDetails
     }
 })();
@@ -127,10 +187,6 @@ const chooseGameMode = function () {
     const modeSelected = this.value
     const {slider} = domElements.getElement();
     const {backModeBtn} = domElements.getElement();
-
-    // const modeSection = document.querySelector('section#mode-select');
-    // const avatarSection = document.querySelector('section#avatar-select');
-    // const playSection = document.querySelector('section#play-area');
 
     const {p1Mark} = domElements.getElement();
     const {p2Mark} = domElements.getElement();
@@ -261,7 +317,7 @@ const playerTurnFlag = (function () {
     let _playerTurn = 'x';
 
     const rollFirstTurn = function () {
-        return playerMarks[Math.floor(Math.random() * 2)];
+        _playerTurn = playerMarks[Math.floor(Math.random() * 2)];
     }
 
     const changePlayerTurn = function () {
@@ -294,6 +350,7 @@ const startGame = function () {
     let p1Name = domElements.getElement().p1Input.value;
     const p1Mark = domElements.getElement().p1Mark.value;
 
+    // Set Player 2
     let p2Name = domElements.getElement().p2Input.value;
     const p2Mark = domElements.getElement().p2Mark.value;
 
@@ -356,12 +413,18 @@ const startGame = function () {
         styleBanner(p1TurnBanner, player1Mark);
         styleBanner(p2TurnBanner, player2Mark);
 
-        // Show banner on x-player's side on start
-        // Note: x-player always have first move
-        playerTurnFlag.setPlayerTurn(playerTurnFlag.rollFirstTurn());
-        const p1XPlayer = p1TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
-        const p2XPlayer = p2TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
+        // Show banner on first turner's side on start
+        // Note: rollFirstTurn() method randomly select between x and o for first turn 
+        // Note: If conditional is added to avoid random first turn on consecutive matches
+        if (gameDetails.getMatches() === 0) {
+            playerTurnFlag.rollFirstTurn();
+        }
+    
+        // Checks p1 and p2 if they have the same mark as current playerTurn and stores true or false to variable
+        const p1FirstPlayer = p1TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
+        const p2FirstPlayer = p2TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
 
+        // Set attribute as shown or hidden to banner if its their turn
         const showDefaultBanner = function (xPlayer, banner) {
             if (xPlayer) {
                 banner.setAttribute('data-shown', 'shown');
@@ -370,11 +433,10 @@ const startGame = function () {
             }
         }
 
-        showDefaultBanner(p1XPlayer, p1TurnBanner);
-        showDefaultBanner(p2XPlayer, p2TurnBanner);
+        showDefaultBanner(p1FirstPlayer, p1TurnBanner);
+        showDefaultBanner(p2FirstPlayer, p2TurnBanner);
 
     })();
-
 }
 
 
@@ -506,6 +568,15 @@ const checkWin = (function () {
         // Return player mark if winner is detected
         if (_winDetected) {
             _winner = playerMark;
+
+            // Records how many legible matches were played
+            gameDetails.logMatches();
+
+            //  Records the last Winner of the Match
+            gameDetails.setLastWinner(_winner);
+
+            // Set reset button for next match events
+            domElements.getElement().resetBtn.setAttribute('data-action', 'next-match');
         }
 
         return _winner;
@@ -539,15 +610,82 @@ const checkWin = (function () {
         }, 400);
     }
 
-    const resetWin = function () {
+    // Change ScoreBoard on win
+    const changeScore = function () {
+        // Identify Players' marks then check if they won
+        const {p1Score, p2Score, scoreBoard} = domElements.getElement();
+
+        const p1Mark = gameDetails.getGameDetails().player1.playerMark;
+        const p2Mark = gameDetails.getGameDetails().player2.playerMark;
+
+        const p1Wins = p1Mark === _winner;
+        const p2Wins = p2Mark === _winner;
+
+        // Changes Score in player objects
+        if (p1Wins) {
+            gameDetails.logScore('p1');
+
+        } else if (p2Wins) {    
+            gameDetails.logScore('p2');
+        }
+
+        // Shows scores on the UI
+        const p1CurrentScore = gameDetails.getScore('p1');
+        const p2CurrentScore = gameDetails.getScore('p2');
+
+        // Logs score to the winning players object
+        const scoreChangeUI = (function () {
+            let winningPlayer;
+
+            if (p1Wins) {
+                winningPlayer = p1Score;
+            } else if (p2Wins) {
+                winningPlayer = p2Score;
+            } else {
+                // if both p1 and p2 === false/ no winner
+                winningPlayer = scoreBoard;
+            }
+            
+            winningPlayer.classList.toggle('change');
+            
+            setTimeout(()=> {
+                if (p1Wins) {
+                    winningPlayer.textContent = `${p1CurrentScore}`;
+                } else if (p2Wins) {
+                    winningPlayer.textContent = `${p2CurrentScore}`;
+                } else {
+                    p1Score.textContent = '0';
+                    p2Score.textContent = '0';
+                }
+
+            }, 250);
+
+            setTimeout(()=> {
+                winningPlayer.classList.toggle('change');
+
+            }, 500); 
+        })();
+
+
+        // if (action === 'total') {
+        //     p1Score.textContent = '0';
+        //     p2Score.textContent = '0';
+        // }
+    }
+
+    const resetWin = function (action) {
         _winner = 'noWinner';
         _winDetected = false;
         _winningCells = [];
 
         showWinningCells(false);
+
+        if (action === 'total') {
+           checkWin.changeScore();
+        }
     }
 
-    return {detectWinner, showWinningCells, enlargeOptions, resetWin};
+    return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore};
 })();
 
 
@@ -611,6 +749,8 @@ const markCell = function () {
         checkWin.showWinningCells(true);
         checkWin.enlargeOptions(true);
 
+        checkWin.changeScore();
+
     }
 
     // Removes event listeners to cell that is marked
@@ -645,7 +785,6 @@ const markCell = function () {
                 winnerName.textContent = winnerMessage;
 
             }, 300);
-            
         }
     })();
 }
@@ -653,8 +792,8 @@ const markCell = function () {
 //  Reset game board on click of reset button
 const resetBoard = function () {
 
-    console.log(playBoard.getPlayBoard());
-    console.log(playBoard.resetPlayBoard());
+    // console.log(playBoard.getPlayBoard());
+    // console.log(playBoard.resetPlayBoard());
 
     // Removes marks on board
     playBoard.resetPlayBoard();
@@ -667,13 +806,36 @@ const resetBoard = function () {
         node.addEventListener('mouseleave', hoverOnCell);
         node.addEventListener('click', markCell)
     });
-
     
-    // Reset to first turn, x-player always turn first
-    playerTurnFlag.resetPlayerTurn();
+    // If game mode is continuously played, allow loser to play first move on next match
+    // Else, randomly select player for first turn;
+    
+    const setFirstTurner = (function () {
+        const matchesPlayed = gameDetails.getMatches();
+        const lastWinner = gameDetails.getLastWinner();
+
+        if (matchesPlayed > 0) {
+            if (lastWinner === 'x') {
+                playerTurnFlag.setPlayerTurn('o');
+            } else if (lastWinner === 'o') {
+                playerTurnFlag.setPlayerTurn('x');
+            }
+        }
+    })();
+
+    // Reset number of matches played if total reset it activated
+    // Else reset board with saved number of matches
+    const resetAction = this.getAttribute('data-action');
+
+    if (resetAction === 'total') {
+        gameDetails.logMatches('reset');
+        gameDetails.logScore('reset');
+    } else if (resetAction === 'next-match') {
+        this.setAttribute('data-action', 'total')
+    }
 
     // Resets winning conditions
-    checkWin.resetWin();
+    checkWin.resetWin(resetAction);
 
     // Return playBoard to original size if minimized and
     // Return options to original size if enlarged
