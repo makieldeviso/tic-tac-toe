@@ -51,7 +51,8 @@ const domElements = (function () {
 
             roundAsk: document.querySelector('p#round-ask'),
             resetBtnLabel: document.querySelector('button#reset span'),
-            returnModeBtnLabel: document.querySelector('button#return-mode span')
+            returnModeBtnLabel: document.querySelector('button#return-mode span'),
+            resetDialog: document.querySelector('dialog#reset-dialog')
         }
         
         return elements;
@@ -59,25 +60,6 @@ const domElements = (function () {
 
     return {getNodeList, getElement}
 })();
-
-// Creates players
-// const playerCreate = (function () {
-    
-//     const _players = [];
-
-//     const addPlayer = function (playerName, playerMark) {
-//         const newPlayer = {playerName, playerMark};
-//         _players.push(newPlayer);
-//         return newPlayer
-//     }
-
-//     const getPLayers = function () {
-//         return _players
-//     }
-
-//     return {addPlayer, getPLayers}
-
-// })();
 
 // Create Game Mode (start) -
 const gameDetails = (function () {
@@ -569,10 +551,37 @@ const checkWin = (function () {
             }
         })();
 
+        // Checks if Draw
+        const checkDraw = (function () {
+            // console.log(playBoard.getPlayBoard());  
+            const board = playBoard.getPlayBoard();
+
+            // Check all rows if there are free cells, return false if all cells are taken
+            let rowsFree;
+            for (let i = 1; i <= 3; i++) {
+                const rowStat = board[`row${i}`].some(cell => cell === '');
+                if (rowStat === true) {
+                    rowsFree = true;
+                    break;
+                } else {
+                    rowsFree = false;
+                }
+            }
+
+            if (_winDetected === false && rowsFree === false)  {
+                _winDetected = 'draw';
+            }
+        })();
+
         // Return player mark if winner is detected
-        if (_winDetected) {
+        // Return draw if draw
+        if (_winDetected === true || _winDetected === 'draw') {
             _winner = playerMark;
 
+            if (_winDetected === 'draw') {
+                _winner = 'draw';
+            }
+            
             // Records how many legible matches were played
             gameDetails.logMatches();
 
@@ -602,25 +611,26 @@ const checkWin = (function () {
     
     // Adds UI indication/ enlarges options when win is detected
     const enlargeOptions = function (enlarge) {
-        const {optionsCont, boardCont, resetBtn, returnModeBtn} = domElements.getElement();
+        const {optionsCont, boardCont, resetBtn, returnModeBtn, roundAsk} = domElements.getElement();
         
+        // Show button function on hover
         const showOptionLabel = function (e) {
-            const {resetBtn, returnModeBtn, resetBtnLabel, returnModeBtnLabel, roundAsk} = domElements.getElement();
-
             if (this === resetBtn && e.type === 'mouseenter' ) {
-                roundAsk.textContent = 'Reset board and play another round';
+                roundAsk.textContent = 'Play another round';
             } else if (this === returnModeBtn && e.type === 'mouseenter') {
                 roundAsk.textContent = 'Return to Mode Select';
             } else {
                 roundAsk.textContent = '\u00A0';
             }
-    
         }
 
+        // Note: setTimeout smoothens transition
         setTimeout(() => {
             if (enlarge) {
                 optionsCont.setAttribute('data-class', 'enlarge');
                 boardCont.setAttribute('data-class', 'minimize');
+
+                // Add event listener to options buttons
                 resetBtn.addEventListener('mouseenter', showOptionLabel);
                 returnModeBtn.addEventListener('mouseenter', showOptionLabel);
                 resetBtn.addEventListener('mouseleave', showOptionLabel);
@@ -628,6 +638,8 @@ const checkWin = (function () {
             } else {
                 optionsCont.setAttribute('data-class', '');
                 boardCont.setAttribute('data-class', '');
+
+                // Remove event listeners to options buttons
                 resetBtn.removeEventListener('mouseenter', showOptionLabel);
                 returnModeBtn.removeEventListener('mouseenter', showOptionLabel);
                 resetBtn.removeEventListener('mouseleave', showOptionLabel);
@@ -637,8 +649,7 @@ const checkWin = (function () {
     }
 
     
-
-    // Change ScoreBoard on win
+    // Logs Scores and change ScoreBoard on end match
     const changeScore = function () {
         // Identify Players' marks then check if they won
         const {p1Score, p2Score, scoreBoard} = domElements.getElement();
@@ -646,8 +657,9 @@ const checkWin = (function () {
         const p1Mark = gameDetails.getGameDetails().player1.playerMark;
         const p2Mark = gameDetails.getGameDetails().player2.playerMark;
 
-        const p1Wins = p1Mark === _winner;
-        const p2Wins = p2Mark === _winner;
+        const p1Wins = p1Mark === _winner; // Saves true or false
+        const p2Wins = p2Mark === _winner; // Saves true or false
+        const gameDraw = _winner === 'draw';
 
         // Changes Score in player objects
         if (p1Wins) {
@@ -663,42 +675,40 @@ const checkWin = (function () {
 
         // Logs score to the winning players
         const scoreChangeUI = (function () {
-            let winningPlayer;
+            let winningPlayerBoard;
 
             if (p1Wins) {
-                winningPlayer = p1Score;
+                winningPlayerBoard = p1Score;
             } else if (p2Wins) {
-                winningPlayer = p2Score;
+                winningPlayerBoard = p2Score;
             } else {
                 // if both p1 and p2 === false/ no winner
-                winningPlayer = scoreBoard;
+                winningPlayerBoard = scoreBoard;
             }
             
-            winningPlayer.classList.toggle('change');
-            
-            setTimeout(()=> {
-                if (p1Wins) {
-                    winningPlayer.textContent = `${p1CurrentScore}`;
-                } else if (p2Wins) {
-                    winningPlayer.textContent = `${p2CurrentScore}`;
-                } else {
-                    p1Score.textContent = '0';
-                    p2Score.textContent = '0';
-                }
+            // UI animation
+            // Note: no UI changes on draw
+            if (!gameDraw) {
+                winningPlayerBoard.classList.toggle('change');
 
-            }, 250);
-
-            setTimeout(()=> {
-                winningPlayer.classList.toggle('change');
-
-            }, 500); 
+                setTimeout(()=> {
+                    if (p1Wins) {
+                        winningPlayerBoard.textContent = `${p1CurrentScore}`;
+                    } else if (p2Wins) {
+                        winningPlayerBoard.textContent = `${p2CurrentScore}`;
+                    } else {
+                        p1Score.textContent = '0';
+                        p2Score.textContent = '0';
+                    }
+                }, 250);
+    
+                setTimeout(()=> {
+                    winningPlayerBoard.classList.toggle('change');
+                }, 500);
+            }
         })();
 
-
-        // if (action === 'total') {
-        //     p1Score.textContent = '0';
-        //     p2Score.textContent = '0';
-        // }
+        console.log(gameDetails.getLastWinner());
     }
 
     const resetWin = function (action) {
@@ -707,11 +717,8 @@ const checkWin = (function () {
         _winningCells = [];
 
         showWinningCells(false);
-
-        if (action === 'total') {
-           checkWin.changeScore();
-        }
     }
+
 
     return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore};
 })();
@@ -801,28 +808,38 @@ const markCell = function () {
 
         if (winner !== 'noWinner') {
 
-            const winnerBanner = document.querySelector(`div[data-player='${winner}']`);
-            const winnerName = winnerBanner.querySelector('p.turn-name');
-            const winnerMessage = `${winnerName.textContent.slice(0, -7)} Wins!`;
-            oldPlayerBanner.setAttribute('data-shown', 'hidden');
-            newPlayerBanner.setAttribute('data-shown', 'hidden');
+            const {p1TurnBanner, p2TurnBanner} = domElements.getElement();
+                p1TurnBanner.setAttribute('data-shown', 'hidden');
+                p2TurnBanner.setAttribute('data-shown', 'hidden');
 
-            setTimeout(()=> {
-                winnerBanner.setAttribute('data-win', 'win');
-                winnerBanner.setAttribute('data-shown', 'shown');
-                winnerName.textContent = winnerMessage;
+            if (winner !== 'draw') {
 
-            }, 300);
+                const winnerBanner = document.querySelector(`div[data-player='${winner}']`);
+                const winnerName = winnerBanner.querySelector('p.turn-name');
+                const winnerMessage = `${winnerName.textContent.slice(0, -7)} Wins!`;
+    
+                setTimeout(()=> {
+                    winnerBanner.setAttribute('data-win', 'win');
+                    winnerBanner.setAttribute('data-shown', 'shown');
+                    winnerName.textContent = winnerMessage;
+                }, 300);
+
+            } else {
+                const {p1TurnName, p2TurnName} = domElements.getElement();
+
+                setTimeout(()=> {
+                    p1TurnBanner.setAttribute('data-shown', 'draw');
+                    p2TurnBanner.setAttribute('data-shown', 'draw');
+                    p1TurnName.textContent = 'Dr';
+                    p2TurnName.textContent = 'aw!';
+                }, 300);
+            }
         }
     })();
 }
 
 //  Reset game board on click of reset button
 const resetBoard = function () {
-
-    // console.log(playBoard.getPlayBoard());
-    // console.log(playBoard.resetPlayBoard());
-
     // Removes marks on board
     playBoard.resetPlayBoard();
 
@@ -849,9 +866,12 @@ const resetBoard = function () {
                 playerTurnFlag.setPlayerTurn('x');
             }
         }
+        
+    // Note: first player turn alternates on draw, because first turner is also last turner
+    // E.g. if x is first turn, x is last turn, thus o is first turn in next match
     })();
 
-    // Reset number of matches played if total reset it activated
+    // Reset number of matches played if total reset is activated,
     // Else reset board with saved number of matches
     const resetAction = this.getAttribute('data-action');
 
@@ -864,6 +884,11 @@ const resetBoard = function () {
 
     // Resets winning conditions
     checkWin.resetWin(resetAction);
+
+    // If total reset is activated reverts score to 0-0
+    if (resetAction === 'total') {
+        checkWin.changeScore();
+    }
 
     // Return playBoard to original size if minimized and
     // Return options to original size if enlarged
@@ -903,6 +928,7 @@ const resetBoard = function () {
 }
 
 
+// Dedicated add eventListener function
 const addEventFunctions = (function () {
     // Mode Buttons
     domElements.getNodeList().modeBtns.forEach(node => {

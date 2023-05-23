@@ -427,7 +427,18 @@ div#p2-banner[data-shown="shown"][data-player="x"] {
     width: 100%;
 }
 
+div#p1-banner[data-shown="draw"],
+div#p2-banner[data-shown="draw"] {
+    width: 50%;
+}
+
+div#p1-banner[data-shown="draw"],
+div#p2-banner[data-shown="draw"]{
+    justify-content: space-between;
+}
 /* Enlarge winner banner */
+
+
 div#p1-banner[data-win="win"] {
     justify-content: center;
 }
@@ -439,7 +450,9 @@ div#p2-banner[data-win="win"] {
 }
 
 div#p1-banner[data-win="win"] p.turn-name,
-div#p2-banner[data-win="win"] p.turn-name {
+div#p2-banner[data-win="win"] p.turn-name,
+div#p1-banner[data-win="draw"] p.turn-name,
+div#p2-banner[data-win="draw"] p.turn-name {
     font-size: calc(var(--common-font-size) * 1.5);
 }
 
