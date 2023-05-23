@@ -52,7 +52,10 @@ const domElements = (function () {
             roundAsk: document.querySelector('p#round-ask'),
             resetBtnLabel: document.querySelector('button#reset span'),
             returnModeBtnLabel: document.querySelector('button#return-mode span'),
-            resetDialog: document.querySelector('dialog#reset-dialog')
+            resetDialog: document.querySelector('dialog#reset-dialog'),
+
+            yesResetBtn: document.querySelector('button#yes-reset'),
+            noResetBtn: document.querySelector('button#no-reset')
         }
         
         return elements;
@@ -711,7 +714,7 @@ const checkWin = (function () {
         console.log(gameDetails.getLastWinner());
     }
 
-    const resetWin = function (action) {
+    const resetWin = function () {
         _winner = 'noWinner';
         _winDetected = false;
         _winningCells = [];
@@ -840,93 +843,124 @@ const markCell = function () {
 
 //  Reset game board on click of reset button
 const resetBoard = function () {
-    // Removes marks on board
-    playBoard.resetPlayBoard();
+    const totalReset = this.dataset.action === 'total';
+    const nextMatch = this.dataset.action === 'next-match';
+    const {resetBtn} = domElements.getElement();
 
-    // Add new eventListeners to NodeList of cells/ buttons
-    const {playCell} = domElements.getNodeList();
-
-    playCell.forEach(node => {
-        node.addEventListener('mouseenter', hoverOnCell);
-        node.addEventListener('mouseleave', hoverOnCell);
-        node.addEventListener('click', markCell)
-    });
+    const initiateReset = function () {
+        // Removes marks on board
+        playBoard.resetPlayBoard();
     
-    // If game mode is continuously played, allow loser to play first move on next match
-    // Else, randomly select player for first turn;
+        // Add new eventListeners to NodeList of cells/ buttons
+        const {playCell} = domElements.getNodeList();
     
-    const setFirstTurner = (function () {
-        const matchesPlayed = gameDetails.getMatches();
-        const lastWinner = gameDetails.getLastWinner();
+        playCell.forEach(node => {
+            node.addEventListener('mouseenter', hoverOnCell);
+            node.addEventListener('mouseleave', hoverOnCell);
+            node.addEventListener('click', markCell)
+        });
+        
+        // If game mode is continuously played, allow loser to play first move on next match
+        // Else, randomly select player for first turn;
+        
+        const setFirstTurner = (function () {
+            const matchesPlayed = gameDetails.getMatches();
+            const lastWinner = gameDetails.getLastWinner();
+    
+            if (matchesPlayed > 0) {
+                if (lastWinner === 'x') {
+                    playerTurnFlag.setPlayerTurn('o');
+                } else if (lastWinner === 'o') {
+                    playerTurnFlag.setPlayerTurn('x');
+                }
+            }
+            
+        // Note: first player turn alternates on draw, because first turner is also last turner
+        // E.g. if x is first turn, x is last turn, thus o is first turn in next match
+        })();
+    
+        // Reset number of matches played if total reset is activated,
+        // Else reset board with saved number of matches
+    
+        if (totalReset) {
+            gameDetails.logMatches('reset');
+            gameDetails.logScore('reset');
+        } else if (nextMatch) {
+            resetBtn.setAttribute('data-action', 'total')
+        }
+    
+        // Resets winning conditions
+        checkWin.resetWin();
+    
+        // If total reset is activated reverts score to 0-0
+        if (totalReset) {
+            checkWin.changeScore();
+        }
+    
+        // Return playBoard to original size if minimized and
+        // Return options to original size if enlarged
+        checkWin.enlargeOptions(false);
+    
+        // Adds reset animation
+        playCell.forEach(node => {
+    
+            // Add timeout to remove other dataset before adding new dataset
+            // Note: fixes animation bug
+            setTimeout(() => {
+                node.setAttribute('data-reset', 'reset');
+            }, 50);
+    
+            setTimeout(() => {
+                node.removeAttribute('data-reset');
+            }, 800);
+        });
+    
+        // UI animation to hide banners first before restarting
+        domElements.getElement().p1TurnBanner.setAttribute('data-shown', 'hidden');
+        domElements.getElement().p2TurnBanner.setAttribute('data-shown', 'hidden');
+    
+        // Remove win UI
+        domElements.getElement().p1TurnBanner.setAttribute('data-win', 'no-win');
+        domElements.getElement().p2TurnBanner.setAttribute('data-win', 'no-win');
+        setTimeout(() => {
+            domElements.getElement().p1TurnBanner.removeAttribute('data-win');
+            domElements.getElement().p2TurnBanner.removeAttribute('data-win');
+        }, 300);
+    
+    
+        // Starts game
+        setTimeout(() => {
+            startGame();
+        }, 700);
+    }
 
-        if (matchesPlayed > 0) {
-            if (lastWinner === 'x') {
-                playerTurnFlag.setPlayerTurn('o');
-            } else if (lastWinner === 'o') {
-                playerTurnFlag.setPlayerTurn('x');
+    if (totalReset) {
+        const {resetDialog, yesResetBtn, noResetBtn} = domElements.getElement();
+        resetDialog.showModal();
+
+        // Reset behavior according to users' modal answer
+        const resetAction = function () {
+            const yes = this.value === 'yes';
+            const no = this.value === 'no';
+
+            if (yes) {
+                resetDialog.close();
+                initiateReset();
+            } else if (no) {
+                resetDialog.close();
+                yesResetBtn.removeEventListener('click', resetAction);
+                noResetBtn.removeEventListener('click', resetAction);
             }
         }
-        
-    // Note: first player turn alternates on draw, because first turner is also last turner
-    // E.g. if x is first turn, x is last turn, thus o is first turn in next match
-    })();
 
-    // Reset number of matches played if total reset is activated,
-    // Else reset board with saved number of matches
-    const resetAction = this.getAttribute('data-action');
+        // Adds event listener to modal buttons
+        yesResetBtn.addEventListener('click', resetAction);
+        noResetBtn.addEventListener('click', resetAction);
 
-    if (resetAction === 'total') {
-        gameDetails.logMatches('reset');
-        gameDetails.logScore('reset');
-    } else if (resetAction === 'next-match') {
-        this.setAttribute('data-action', 'total')
+    } else {
+        initiateReset();
     }
-
-    // Resets winning conditions
-    checkWin.resetWin(resetAction);
-
-    // If total reset is activated reverts score to 0-0
-    if (resetAction === 'total') {
-        checkWin.changeScore();
-    }
-
-    // Return playBoard to original size if minimized and
-    // Return options to original size if enlarged
-    checkWin.enlargeOptions(false);
-
-    // Adds reset animation
-    playCell.forEach(node => {
-
-        // Add timeout to remove other dataset before adding new dataset
-        // Note: fixes animation bug
-        setTimeout(() => {
-            node.setAttribute('data-reset', 'reset');
-        }, 50);
-
-        setTimeout(() => {
-            node.removeAttribute('data-reset');
-        }, 800);
-    });
-
-    // UI animation to hide banners first before restarting
-    domElements.getElement().p1TurnBanner.setAttribute('data-shown', 'hidden');
-    domElements.getElement().p2TurnBanner.setAttribute('data-shown', 'hidden');
-
-    // Remove win UI
-    domElements.getElement().p1TurnBanner.setAttribute('data-win', 'no-win');
-    domElements.getElement().p2TurnBanner.setAttribute('data-win', 'no-win');
-    setTimeout(() => {
-        domElements.getElement().p1TurnBanner.removeAttribute('data-win');
-        domElements.getElement().p2TurnBanner.removeAttribute('data-win');
-    }, 300);
-
-
-    // Starts game
-    setTimeout(() => {
-        startGame();
-    }, 700);
 }
-
 
 // Dedicated add eventListener function
 const addEventFunctions = (function () {

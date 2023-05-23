@@ -139,8 +139,16 @@
                     </div>
 
                     <dialog id="reset-dialog">
-                        <div>
-                            <p>Are you sure you want to reset?</p>
+                        <div class="dialog-content">
+                            <div id="msg-cont">
+                                <p>Are you sure you want to reset?</p>
+                                <p>Current scores will be removed.</p>
+                            </div>
+                            
+                            <div id="yn-cont">
+                                <button class="yn-btn" id="yes-reset" value="yes">Yes</button>
+                                <button class="yn-btn" id="no-reset" value="no">No</button>
+                            </div>
                         </div>
                     </dialog>
                 </div>
