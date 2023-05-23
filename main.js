@@ -47,7 +47,11 @@ const domElements = (function () {
             boardCont: document.querySelector('div#board'), 
             optionsCont: document.querySelector('div#options'),
             resetBtn: document.querySelector('button#reset'),
-            returnModeBtn: document.querySelector('button#return-mode')
+            returnModeBtn: document.querySelector('button#return-mode'),
+
+            roundAsk: document.querySelector('p#round-ask'),
+            resetBtnLabel: document.querySelector('button#reset span'),
+            returnModeBtnLabel: document.querySelector('button#return-mode span')
         }
         
         return elements;
@@ -595,20 +599,44 @@ const checkWin = (function () {
         }
     }
 
+    
     // Adds UI indication/ enlarges options when win is detected
     const enlargeOptions = function (enlarge) {
-        const {optionsCont, boardCont } = domElements.getElement();
-       
+        const {optionsCont, boardCont, resetBtn, returnModeBtn} = domElements.getElement();
+        
+        const showOptionLabel = function (e) {
+            const {resetBtn, returnModeBtn, resetBtnLabel, returnModeBtnLabel, roundAsk} = domElements.getElement();
+
+            if (this === resetBtn && e.type === 'mouseenter' ) {
+                roundAsk.textContent = 'Reset board and play another round';
+            } else if (this === returnModeBtn && e.type === 'mouseenter') {
+                roundAsk.textContent = 'Return to Mode Select';
+            } else {
+                roundAsk.textContent = '\u00A0';
+            }
+    
+        }
+
         setTimeout(() => {
             if (enlarge) {
                 optionsCont.setAttribute('data-class', 'enlarge');
                 boardCont.setAttribute('data-class', 'minimize');
+                resetBtn.addEventListener('mouseenter', showOptionLabel);
+                returnModeBtn.addEventListener('mouseenter', showOptionLabel);
+                resetBtn.addEventListener('mouseleave', showOptionLabel);
+                returnModeBtn.addEventListener('mouseleave', showOptionLabel);
             } else {
                 optionsCont.setAttribute('data-class', '');
                 boardCont.setAttribute('data-class', '');
+                resetBtn.removeEventListener('mouseenter', showOptionLabel);
+                returnModeBtn.removeEventListener('mouseenter', showOptionLabel);
+                resetBtn.removeEventListener('mouseleave', showOptionLabel);
+                returnModeBtn.removeEventListener('mouseleave', showOptionLabel);
             }
         }, 400);
     }
+
+    
 
     // Change ScoreBoard on win
     const changeScore = function () {
@@ -633,7 +661,7 @@ const checkWin = (function () {
         const p1CurrentScore = gameDetails.getScore('p1');
         const p2CurrentScore = gameDetails.getScore('p2');
 
-        // Logs score to the winning players object
+        // Logs score to the winning players
         const scoreChangeUI = (function () {
             let winningPlayer;
 
