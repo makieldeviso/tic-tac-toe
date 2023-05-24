@@ -595,6 +595,8 @@ button.play-cell {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
+    transition: all 0.1s ease-in-out;
+    filter: opacity(0.5);
 }
 
 button.play-cell:hover {
@@ -609,14 +611,16 @@ button.play-cell[data-reset="reset"] {
     background-repeat: no-repeat;
 }
 
-button.play-cell.x-marked {
+button.play-cell[data-mark='x'] {
     background-image: url(./images/x-mark.png);
     box-shadow: inset 0 0 10px var(--neon-magenta);
+    filter: opacity(1);
 }
 
-button.play-cell.o-marked {
+button.play-cell[data-mark="o"] {
     background-image: url(./images/o-mark.png);
     box-shadow: inset 0 0 10px var(--neon-cyan);
+    filter: opacity(1);
 }
 
 button.play-cell[data-win="win"] {
@@ -624,12 +628,12 @@ button.play-cell[data-win="win"] {
     z-index: 1;
 }
 
-button.play-cell[data-win="win"].x-marked {
+button.play-cell[data-win="win"][data-mark='x'] {
     box-shadow: 0 0 20px var(--neon-magenta);
     background-color: var(--dark-pink);
 }
 
-button.play-cell[data-win="win"].o-marked {
+button.play-cell[data-win="win"][data-mark="o"] {
     box-shadow: 0 0 20px var(--neon-cyan);
     background-color: var(--dark-green);
 }
@@ -661,24 +665,18 @@ button.play-cell[data-win="win"].o-marked {
      } 
  }
 
-button.play-cell div.button-bg {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    opacity: 0.5;
-}
-
-div.button-bg.x-hovered {
+button.play-cell[data-hover='x'] {
     background-image: url(./images/x-mark.png);
-    box-shadow: inset 0 0 10px var(--neon-magenta);
+    /* box-shadow: inset 0 0 10px var(--neon-magenta); */
+    filter: opacity(0.5);
 }
 
-div.button-bg.o-hovered {
+button.play-cell[data-hover='o'] {
     background-image: url(./images/o-mark.png);
-    box-shadow: inset 0 0 10px var(--neon-cyan);
+    /* box-shadow: inset 0 0 10px var(--neon-cyan); */
+    filter: opacity(0.5);
 }
+
 /* Board (end) -- */
 
 /* Options (start) -- */
@@ -769,7 +767,7 @@ div#options button i {
 }
 
 /* Reset dialog (start) -- */
-dialog#reset-dialog {
+dialog.warning-modal {
     width: max-content;
     margin: auto;
     text-align: center;
@@ -780,11 +778,7 @@ dialog#reset-dialog {
     transition: all 1s ease-in-out;
 }
 
-/* dialog#reset-dialog::closed {
-    transform: scale(0.5);
-} */
-
-dialog#reset-dialog[open] {
+dialog.warning-modal[open] {
     animation: open-modal 0.3s ease-in-out;
 }
 
@@ -798,11 +792,12 @@ dialog#reset-dialog[open] {
     }
 }
 
-dialog#reset-dialog::backdrop {
+dialog.warning-modal::backdrop {
     background: rgba(5, 23, 37, 0.8);
 }
 
-dialog#reset-dialog div.dialog-content {
+dialog#reset-dialog div.dialog-content,
+dialog#return-dialog div.dialog-content {
     display: flex;
     flex-direction: column;
     gap: var(--common-margin);
@@ -811,13 +806,14 @@ dialog#reset-dialog div.dialog-content {
     box-shadow: 0 0 3px 1px var(--neon-magenta);
 }
 
-div#msg-cont {
+div.msg-cont {
     display: flex;
     flex-direction: column;
+    max-width: 300px;
     gap: var(--common-margin);
 }
 
-div#msg-cont p {
+div.msg-cont p {
     color: var(--off-white);
     text-shadow: 0 0 5px var(--neon-magenta);
     font-family: var(--stylized-font);
@@ -825,14 +821,15 @@ div#msg-cont p {
 }
 
 
-div#yn-cont {
+div.yn-cont {
     display: flex;
     justify-content: center;
     gap:calc(var(--common-margin) * 2) ;
     margin-top: calc(var(--common-margin) * 3);
 }
 
-div#yn-cont button.yn-btn {
+dialog#reset-dialog button.yn-btn,
+dialog#return-dialog button.yn-btn {
     width: calc(60px + 1vw);
     height: max-content;
     padding: var(--common-padding);
@@ -845,7 +842,15 @@ div#yn-cont button.yn-btn {
     filter: opacity(0.5);
 }
 
-div#yn-cont button.yn-btn:hover {
+dialog#reset-dialog button.yn-btn#no-reset,
+dialog#return-dialog button.yn-btn#no-return {
+    filter: opacity(0.8);
+}
+
+dialog#reset-dialog button.yn-btn:hover,
+dialog#return-dialog button.yn-btn:hover,
+button.yn-btn#no-reset:hover,
+button.yn-btn#no-return:hover {
     text-shadow: 0 0 10px var(--neon-magenta);
     box-shadow: 0 0 5px 2px var(--neon-magenta);
     border: 1px solid var(--off-white);

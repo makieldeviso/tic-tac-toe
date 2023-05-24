@@ -52,10 +52,14 @@ const domElements = (function () {
             roundAsk: document.querySelector('p#round-ask'),
             resetBtnLabel: document.querySelector('button#reset span'),
             returnModeBtnLabel: document.querySelector('button#return-mode span'),
-            resetDialog: document.querySelector('dialog#reset-dialog'),
 
+            resetDialog: document.querySelector('dialog#reset-dialog'),
             yesResetBtn: document.querySelector('button#yes-reset'),
-            noResetBtn: document.querySelector('button#no-reset')
+            noResetBtn: document.querySelector('button#no-reset'),
+
+            returnDialog: document.querySelector('dialog#return-dialog'),
+            yesReturnBtn: document.querySelector('button#yes-return'),
+            noReturnBtn: document.querySelector('button#no-return')
         }
         
         return elements;
@@ -88,7 +92,7 @@ const gameDetails = (function () {
         lastWinner: ''
 
     };
- 
+
     const setGameMode = function (modeSelected) {
         defineGame.gameMode = modeSelected;
     }
@@ -155,9 +159,23 @@ const gameDetails = (function () {
         return playerScore;
     }
 
-    
+    const resetGameDetails = function () {
+        setGameMode('versus');
+        setPlayer1('x-player', 'x', 'user');
+        setPlayer2('o-player', 'o', 'user');
+        logScore('reset');
+        logMatches('reset');
+        setLastWinner('');
+    }
+
+    const p2Computer = function () {
+        const p2 = defineGame.player2.player === 'computer';
+        return p2;
+    }
+
     return {
         setGameMode, 
+        resetGameDetails,
         getGameMode,
         setPlayer1, 
         setPlayer2,
@@ -167,57 +185,50 @@ const gameDetails = (function () {
         getLastWinner,
         logScore,
         getScore,
-        getGameDetails
+        getGameDetails,
+        p2Computer
     }
 })();
 
 // Select game mode from buttons
 const chooseGameMode = function () {
     const modeSelected = this.value
-    const {slider} = domElements.getElement();
-    const {backModeBtn} = domElements.getElement();
-
-    const {p1Mark} = domElements.getElement();
-    const {p2Mark} = domElements.getElement();
-
-    const {p1Label} = domElements.getElement();
-    const {p2Label} = domElements.getElement();
-
-    const {p1Input} = domElements.getElement();
-    const {p2Input} = domElements.getElement();
+    const { slider, backModeBtn, p1Mark, p2Mark, p1Label,
+        p2Label, p1Input, p2Input } = domElements.getElement();
 
     //  Changes gameMode in the gameDetails Obj
     gameDetails.setGameMode(modeSelected);
+
+    // Revert changes in edit players screen to default upon back
+    const setDefaultPlayers = function () {
+        p1Mark.value = 'x';
+        p2Mark.value = 'o';
+        
+        p1Mark.setAttribute('data-flip', 'flip');
+        p2Mark.setAttribute('data-flip', 'reverse');
+
+        p1Label.textContent = 'Enter Player 1 Name';
+        p2Label.textContent = 'Enter Player 2 Name';
+
+        p1Input.setAttribute('placeholder', 'x-player');
+        p2Input.setAttribute('placeholder', 'o-player');
+
+        p1Input.value = '';
+        p2Input.value = '';
+
+        p2Input.disabled = false;
+
+        gameDetails.setPlayer1('x-player', 'x', 'user');
+        gameDetails.setPlayer1('o-player', 'o', 'user');
+        gameDetails.setGameMode('versus');
+    };
 
     // Adds back to mode Select function (start) --
     const backModeSelect = function () {
         // Slides back to mode select screen
         slider.classList.remove('mode-selected');
 
-        // Revert changes in edit players screen to default upon back
-        const setDefaultPlayers = (function () {
-            p1Mark.value = 'x';
-            p2Mark.value = 'o';
-            
-            p1Mark.setAttribute('data-flip', 'flip');
-            p2Mark.setAttribute('data-flip', 'reverse');
-
-            p1Label.textContent = 'Enter Player 1 Name';
-            p2Label.textContent = 'Enter Player 2 Name';
-
-            p1Input.setAttribute('placeholder', 'x-player');
-            p2Input.setAttribute('placeholder', 'o-player');
-
-            p1Input.value = '';
-            p2Input.value = '';
-
-            p2Input.disabled = false;
-
-            gameDetails.setPlayer1('x-player', 'x', 'user');
-            gameDetails.setPlayer1('o-player', 'o', 'user');
-            gameDetails.setGameMode('versus');
-
-        })();
+        setDefaultPlayers();
 
         // Remove event listener on back
         backModeBtn.removeEventListener('click', backModeSelect);
@@ -245,8 +256,11 @@ const chooseGameMode = function () {
             p2Input.value = 'Ms. Unbeatable';
             p2Input.disabled = true;
         }
-    }
 
+    } else if (modeSelected === 'versus') {
+        // Set edit players to default
+        setDefaultPlayers();
+    }
 }
 
 // Create Game Mode (end) -
@@ -329,42 +343,60 @@ const playerTurnFlag = (function () {
         _playerTurn = rollFirstTurn();
     }
 
-    return {changePlayerTurn, getPlayerTurn, resetPlayerTurn, rollFirstTurn, setPlayerTurn}
+    const getTurnAI = function () {
+        const p2TurnMark = gameDetails.getGameDetails().player2.playerMark;
+        let turnAI = false;
+
+        if (p2TurnMark === _playerTurn) {
+            turnAI = true;
+        } 
+
+        return turnAI;
+    }
+
+    return {changePlayerTurn, 
+            getPlayerTurn, 
+            resetPlayerTurn, 
+            rollFirstTurn, 
+            setPlayerTurn,
+            getTurnAI
+        }
 })();
 
 // Collect Data from user input and change gameDetails Obj to start game
-const startGame = function () {
+const startGame = function (e) {
+    if (e !== undefined) {
+        // Set Player 1
+        let p1Name = domElements.getElement().p1Input.value;
+        const p1Mark = domElements.getElement().p1Mark.value;
 
-    // Set Player 1
-    let p1Name = domElements.getElement().p1Input.value;
-    const p1Mark = domElements.getElement().p1Mark.value;
+        // Set Player 2
+        let p2Name = domElements.getElement().p2Input.value;
+        const p2Mark = domElements.getElement().p2Mark.value;
 
-    // Set Player 2
-    let p2Name = domElements.getElement().p2Input.value;
-    const p2Mark = domElements.getElement().p2Mark.value;
+        // Sets p2 to computer if not versus mode
+        let p2Player = 'user';
+        if (gameDetails.getGameMode() !== 'versus') {
+            p2Player = 'computer';
+        }
 
-    // Sets p2 to computer if not versus mode
-    let p2Player = 'user';
-    if (gameDetails.getGameMode() !== 'versus') {
-        p2Player = 'computer';
+        // Sets name to default if no name was entered
+        if (p1Name.length === 0) { 
+            p1Name = domElements.getElement().p1Input.getAttribute('placeholder');
+        }
+
+        if (p2Name.length === 0) {
+            p2Name = domElements.getElement().p2Input.getAttribute('placeholder');
+        }
+
+        // Sets the players in the gameDetails Obj
+        gameDetails.setPlayer1(p1Name, p1Mark, 'user');
+        gameDetails.setPlayer2(p2Name, p2Mark, p2Player);
+
+        // Slides to play board screen
+        domElements.getElement().slider.classList.add('game-start'); 
+        
     }
-
-    // Sets name to default if no name was entered
-    if (p1Name.length === 0) { 
-        p1Name = domElements.getElement().p1Input.getAttribute('placeholder');
-    }
-
-    if (p2Name.length === 0) {
-        p2Name = domElements.getElement().p2Input.getAttribute('placeholder');
-    }
-
-    // Sets the players in the gameDetails Obj
-    gameDetails.setPlayer1(p1Name, p1Mark, 'user');
-    gameDetails.setPlayer2(p2Name, p2Mark, p2Player);
-
-    // Slides to play board screen
-    domElements.getElement().slider.classList.add('game-start');
-
 
     // Setup game screen depending on gameMode
     const setupGameBoard = (function () {
@@ -388,12 +420,12 @@ const startGame = function () {
         // Sets avatar/ playerMark on the banner
         p1Avatar.textContent = `${player1Mark.toUpperCase()}`;
         p2Avatar.textContent = `${player2Mark.toUpperCase()}`;
-   
+
         // Styles Banner according to mark
         const styleBanner = function (banner, mark) {
             if (mark === 'x') {
                 banner.setAttribute('data-player', 'x')
-    
+
             } else if (mark === 'o') {
                 banner.setAttribute('data-player', 'o')
             }
@@ -408,7 +440,7 @@ const startGame = function () {
         if (gameDetails.getMatches() === 0) {
             playerTurnFlag.rollFirstTurn();
         }
-    
+
         // Checks p1 and p2 if they have the same mark as current playerTurn and stores true or false to variable
         const p1FirstPlayer = p1TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
         const p2FirstPlayer = p2TurnBanner.getAttribute('data-player') === playerTurnFlag.getPlayerTurn();
@@ -425,9 +457,26 @@ const startGame = function () {
         showDefaultBanner(p1FirstPlayer, p1TurnBanner);
         showDefaultBanner(p2FirstPlayer, p2TurnBanner);
 
+        
+        // Checks if p2 is computer and AI is first turn
+        const p2Computer = gameDetails.p2Computer();
+        const turnAI = playerTurnFlag.getTurnAI();
+        const randomAI = gameDetails.getGameMode() === 'random';
+
+        if (turnAI && p2Computer && randomAI ) {
+            runAI('random');
+        } else {
+            const {playCell} = domElements.getNodeList();
+            playCell.forEach(cell => {
+                cell.addEventListener('click', markCell);
+                cell.addEventListener('mouseenter', hoverOnCell);
+                cell.addEventListener('mouseleave', hoverOnCell);
+            })
+        }
+
+
     })();
 }
-
 
 const playBoard = (function () {
     
@@ -459,14 +508,9 @@ const playBoard = (function () {
         const {playCell} = domElements.getNodeList();
 
         playCell.forEach(cell => {
-            const xMarked = cell.getAttribute('class').includes('x-marked');
-            const oMarked = cell.getAttribute('class').includes('o-marked');
-
-            // Removes player Marks
-            if (xMarked) {
-                cell.classList.remove('x-marked');
-            } else if (oMarked) {
-                cell.classList.remove('o-marked');
+            const marked = cell.hasAttribute('data-mark');
+            if (marked) {
+                cell.removeAttribute('data-mark');
             }
 
             // Removes win indicator
@@ -480,7 +524,6 @@ const playBoard = (function () {
 
         return _playBoard;
     }
-
 
     return {getPlayBoard, setPlayBoard, resetPlayBoard}
 
@@ -555,8 +598,7 @@ const checkWin = (function () {
         })();
 
         // Checks if Draw
-        const checkDraw = (function () {
-            // console.log(playBoard.getPlayBoard());  
+        const checkDraw = (function () {  
             const board = playBoard.getPlayBoard();
 
             // Check all rows if there are free cells, return false if all cells are taken
@@ -611,7 +653,6 @@ const checkWin = (function () {
         }
     }
 
-    
     // Adds UI indication/ enlarges options when win is detected
     const enlargeOptions = function (enlarge) {
         const {optionsCont, boardCont, resetBtn, returnModeBtn, roundAsk} = domElements.getElement();
@@ -710,8 +751,6 @@ const checkWin = (function () {
                 }, 500);
             }
         })();
-
-        console.log(gameDetails.getLastWinner());
     }
 
     const resetWin = function () {
@@ -721,7 +760,6 @@ const checkWin = (function () {
 
         showWinningCells(false);
     }
-
 
     return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore};
 })();
@@ -734,40 +772,50 @@ const hoverOnCell = function (e) {
     const currentPlayerTurn = playerTurnFlag.getPlayerTurn();
 
     if (e.type === 'mouseenter') {
-        const buttonBg = document.createElement('div');
-        buttonBg.classList.add('button-bg');
-
         // Adds UI depending on player turn
         if (currentPlayerTurn === 'x') {
-            buttonBg.classList.add('x-hovered');
+            this.setAttribute('data-hover', 'x');
         } else if (currentPlayerTurn === 'o') {
-            buttonBg.classList.add('o-hovered');
+            this.setAttribute('data-hover', 'o');
         }
- 
-        this.appendChild(buttonBg);
         
     } else if (e.type === 'mouseleave') {
-        this.removeChild(document.querySelector('div.button-bg'));
+        this.removeAttribute('data-hover');
     }
 }
 
 // Mark play cell on click
-const markCell = function () {
-    const cellRow = this.dataset.row;
-    const cellCol = this.dataset.col;
+const markCell = function (e) {
+    const {playCell} = domElements.getNodeList();
+    let cellRow;
+    let cellCol;
     const playerMark = playerTurnFlag.getPlayerTurn();
+    let tile;
 
+    if (e.type === 'click') {
+        cellRow = this.dataset.row;
+        cellCol = this.dataset.col;
+        tile = this;
+
+    } else {
+        cellRow = e.dataset.row;
+        cellCol = e.dataset.col;
+        tile = e;
+    }
+    
     // Marks the play board object
     playBoard.setPlayBoard(cellRow, cellCol, playerMark);
     
     // Removes background Element used for hover effect
-    this.removeChild(document.querySelector('div.button-bg'));
-    
+    if (tile.hasAttribute('data-hover')) {
+        tile.removeAttribute('data-hover');
+    }
+
     // Marks the board with corresponding player mark
     if (playerMark === 'x') {
-        this.classList.add('x-marked');
+        tile.setAttribute('data-mark', 'x');
     } else if (playerMark === 'o') {
-        this.classList.add('o-marked'); 
+        tile.setAttribute('data-mark', 'o'); 
     }
     
     const currentPlayBoard = playBoard.getPlayBoard(playerMark);
@@ -777,7 +825,7 @@ const markCell = function () {
     
     if (winner !== 'noWinner') {
         // Removes Access to board on win
-        domElements.getNodeList().playCell.forEach(node => {
+        playCell.forEach(node => {
             node.removeEventListener('mouseenter', hoverOnCell);
             node.removeEventListener('mouseleave', hoverOnCell);
             node.removeEventListener('click', markCell);
@@ -788,13 +836,12 @@ const markCell = function () {
         checkWin.enlargeOptions(true);
 
         checkWin.changeScore();
-
     }
 
     // Removes event listeners to cell that is marked
-    this.removeEventListener('click', markCell);
-    this.removeEventListener('mouseenter', hoverOnCell);
-    this.removeEventListener('mouseleave', hoverOnCell);
+    tile.removeEventListener('click', markCell);
+    tile.removeEventListener('mouseenter', hoverOnCell)
+    tile.removeEventListener('mouseleave', hoverOnCell)
 
     // Change player
     playerTurnFlag.changePlayerTurn();
@@ -839,25 +886,94 @@ const markCell = function () {
             }
         }
     })();
+
+    // Setup for AI Turn
+    const p2Computer = gameDetails.p2Computer();
+    if (p2Computer) {
+        const {gameMode} = gameDetails.getGameDetails();
+        const noWinner = winner === 'noWinner';
+        const turnAI = playerTurnFlag.getTurnAI();
+
+        if (gameMode === 'random' && turnAI && noWinner) {
+            runAI('random');
+        }
+    } 
 }
+ 
+const runAI = function (AI) {
+    const {playCell} = domElements.getNodeList();
+    const {p2TurnBanner} = domElements.getElement();
+
+    // Convert NodeList to Array
+    const cellArray = Array.from(playCell);
+
+    // Filter Cells that are not marked function
+    const checkFreeCells = function () {
+        const freeCells = cellArray.filter(cell => !cell.hasAttribute('data-mark'));
+        return freeCells;
+    };
+
+    // Remove eventListeners on the cells while AI's turn
+    checkFreeCells().forEach(cell => {
+        cell.removeEventListener('mouseenter', hoverOnCell);
+        cell.removeEventListener('mouseleave', hoverOnCell);
+        cell.removeEventListener('click', markCell);
+    });
+
+    // Random AI choose a cell/ tile to mark
+    const randomAITurn = function () {
+        // AI chooses random cell to mark
+        const randomIndex = Math.floor(Math.random() * checkFreeCells().length);
+        const tileAI = checkFreeCells()[randomIndex];
+        
+        setTimeout(() => {
+            markCell(tileAI);
+        }, 800);
+
+        // Return eventListeners on the cells
+        // Note: added delay to avoid rapid click
+        setTimeout(() => {
+            checkFreeCells().forEach(cell => {
+                cell.addEventListener('mouseenter', hoverOnCell);
+                cell.addEventListener('mouseleave', hoverOnCell);
+                cell.addEventListener('click', markCell);
+            });
+        }, 1200);
+    }
+
+    if (AI === 'random') {
+        randomAITurn();
+    }
+};
+
 
 //  Reset game board on click of reset button
-const resetBoard = function () {
-    const totalReset = this.dataset.action === 'total';
-    const nextMatch = this.dataset.action === 'next-match';
-    const {resetBtn} = domElements.getElement();
+const resetBoard = function (e) {
+    const {resetBtn, resetDialog, yesResetBtn, noResetBtn, yesReturnBtn} = domElements.getElement();
+    const {playCell} = domElements.getNodeList();
 
-    const initiateReset = function () {
+    let totalReset = false;
+    let nextMatch = false;
+
+    // Conditional to detect what activated the reset
+    if (e === yesReturnBtn) {
+        // Resets the board through Return Mode Button
+        totalReset = e.dataset.action === 'total';
+    } else {
+        // Resets the board through Reset Button
+        totalReset = this.dataset.action === 'total';
+        nextMatch = this.dataset.action === 'next-match';
+    }
+
+    const initiateReset = function (action) {
         // Removes marks on board
         playBoard.resetPlayBoard();
     
-        // Add new eventListeners to NodeList of cells/ buttons
-        const {playCell} = domElements.getNodeList();
-    
+        // Add new eventListeners
         playCell.forEach(node => {
-            node.addEventListener('mouseenter', hoverOnCell);
-            node.addEventListener('mouseleave', hoverOnCell);
-            node.addEventListener('click', markCell)
+            node.removeEventListener('mouseenter', hoverOnCell);
+            node.removeEventListener('mouseleave', hoverOnCell);
+            node.removeEventListener('click', markCell)
         });
         
         // If game mode is continuously played, allow loser to play first move on next match
@@ -903,7 +1019,6 @@ const resetBoard = function () {
     
         // Adds reset animation
         playCell.forEach(node => {
-    
             // Add timeout to remove other dataset before adding new dataset
             // Note: fixes animation bug
             setTimeout(() => {
@@ -929,37 +1044,83 @@ const resetBoard = function () {
     
     
         // Starts game
-        setTimeout(() => {
-            startGame();
-        }, 700);
-    }
+        // Note: startGame function do not initiate for return to Mode
+        if (action !== 'returnMode') {
+            setTimeout(() => {
+                startGame();
+            }, 800);
+        }
+    };
 
-    if (totalReset) {
-        const {resetDialog, yesResetBtn, noResetBtn} = domElements.getElement();
+    if (totalReset && (e !== yesReturnBtn)) {
         resetDialog.showModal();
 
         // Reset behavior according to users' modal answer
         const resetAction = function () {
             const yes = this.value === 'yes';
-            const no = this.value === 'no';
 
             if (yes) {
-                resetDialog.close();
-                initiateReset();
-            } else if (no) {
-                resetDialog.close();
-                yesResetBtn.removeEventListener('click', resetAction);
-                noResetBtn.removeEventListener('click', resetAction);
+                initiateReset('reset');
             }
+
+            resetDialog.close();
+            yesResetBtn.removeEventListener('click', resetAction);
+            noResetBtn.removeEventListener('click', resetAction);
         }
 
         // Adds event listener to modal buttons
         yesResetBtn.addEventListener('click', resetAction);
         noResetBtn.addEventListener('click', resetAction);
 
+    } else if (nextMatch) {
+        // Fast reset, no prompt/ modal
+        initiateReset('reset');
+
     } else {
-        initiateReset();
+        // Reset without startGame activation
+        initiateReset('returnMode');
     }
+}
+
+// Return to Title Screen/ Mode Select 
+const returnMode = function () {
+    const {returnDialog, yesReturnBtn, noReturnBtn, slider} = domElements.getElement();
+
+    const initiateReturn = function () {
+        const yes = this.value === 'yes';
+
+        if (yes) {
+            const {p1Input, p1Mark, p2Input, p2Mark} = domElements.getElement();
+            // Overwrites the Edit player values
+            
+            p1Input.value = '';
+            p1Input.setAttribute('placeholder', 'x-player');
+            p1Mark.value = 'x';
+
+            p2Input.value = '';
+            p2Input.setAttribute('placeholder', 'o-player');
+            p2Mark.value = 'o';
+
+            // Resets the defineGame Obj
+            gameDetails.resetGameDetails();
+
+            // Resets Board
+            resetBoard(this);
+
+            // Slides back to mode-select
+            slider.classList.remove('game-start', 'mode-selected');
+
+        }
+        // Removes event listeners
+        yesReturnBtn.removeEventListener('click', initiateReturn);
+        noReturnBtn.removeEventListener('click', initiateReturn);
+
+        returnDialog.close();
+    }
+
+    yesReturnBtn.addEventListener('click', initiateReturn);
+    noReturnBtn.addEventListener('click', initiateReturn);
+    returnDialog.showModal();
 }
 
 // Dedicated add eventListener function
@@ -974,7 +1135,6 @@ const addEventFunctions = (function () {
         node.addEventListener ('click', changePlayerDetails);
      });
 
-
     //  Start Button
     domElements.getElement().startBtn.addEventListener('click', startGame);
 
@@ -985,10 +1145,12 @@ const addEventFunctions = (function () {
         node.addEventListener('click', markCell)
     });
 
+    // Reset and return to Mode Buttons 
     domElements.getElement().resetBtn.addEventListener('click', resetBoard);
+    domElements.getElement().returnModeBtn.addEventListener('click', returnMode);
+
 
 })();
-
 
 
 

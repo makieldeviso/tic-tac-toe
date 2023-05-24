@@ -138,16 +138,30 @@
                         </button>
                     </div>
 
-                    <dialog id="reset-dialog">
+                    <dialog id="reset-dialog" class="warning-modal">
                         <div class="dialog-content">
-                            <div id="msg-cont">
+                            <div class="msg-cont">
                                 <p>Are you sure you want to reset?</p>
                                 <p>Current scores will be removed.</p>
                             </div>
                             
-                            <div id="yn-cont">
+                            <div class="yn-cont">
                                 <button class="yn-btn" id="yes-reset" value="yes">Yes</button>
                                 <button class="yn-btn" id="no-reset" value="no">No</button>
+                            </div>
+                        </div>
+                    </dialog>
+
+                    <dialog id="return-dialog" class="warning-modal">
+                        <div class="dialog-content">
+                            <div class="msg-cont">
+                                <p>Are you sure you want to return to Mode Select?</p>
+                                <!-- <p>Current scores will be removed.</p> -->
+                            </div>
+                            
+                            <div class="yn-cont">
+                                <button class="yn-btn" id="yes-return" value="yes" data-action="total">Yes</button>
+                                <button class="yn-btn" id="no-return" value="no">No</button>
                             </div>
                         </div>
                     </dialog>
