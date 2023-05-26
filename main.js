@@ -59,7 +59,9 @@ const domElements = (function () {
 
             returnDialog: document.querySelector('dialog#return-dialog'),
             yesReturnBtn: document.querySelector('button#yes-return'),
-            noReturnBtn: document.querySelector('button#no-return')
+            noReturnBtn: document.querySelector('button#no-return'),
+
+            footer: document.querySelector('footer')
         }
         
         return elements;
@@ -168,6 +170,28 @@ const gameDetails = (function () {
         setLastWinner('');
     }
 
+    // Revert changes in edit players screen to default upon back
+    const setDefaultEditPlayers = function () {
+        const { p1Mark, p2Mark, p1Label, p2Label, p1Input, p2Input } = domElements.getElement();
+
+        p1Mark.value = 'x';
+        p2Mark.value = 'o';
+        
+        p1Mark.setAttribute('data-flip', 'flip');
+        p2Mark.setAttribute('data-flip', 'reverse');
+
+        p1Label.textContent = 'Enter Player 1 Name';
+        p2Label.textContent = 'Enter Player 2 Name';
+
+        p1Input.setAttribute('placeholder', 'x-player');
+        p2Input.setAttribute('placeholder', 'o-player');
+
+        p1Input.value = '';
+        p2Input.value = '';
+
+        p2Input.disabled = false;
+    };
+
     const getPlayerMark = function (player) {
         let mark;
 
@@ -188,6 +212,7 @@ const gameDetails = (function () {
     return {
         setGameMode, 
         resetGameDetails,
+        setDefaultEditPlayers,
         getGameMode,
         setPlayer1, 
         setPlayer2,
@@ -203,45 +228,30 @@ const gameDetails = (function () {
     }
 })();
 
+
 // Select game mode from buttons
 const chooseGameMode = function () {
     const modeSelected = this.value
     const { slider, backModeBtn, p1Mark, p2Mark, p1Label,
-        p2Label, p1Input, p2Input } = domElements.getElement();
+        p2Label, p1Input, p2Input, footer } = domElements.getElement();
 
     //  Changes gameMode in the gameDetails Obj
     gameDetails.setGameMode(modeSelected);
 
-    // Revert changes in edit players screen to default upon back
-    const setDefaultPlayers = function () {
-        p1Mark.value = 'x';
-        p2Mark.value = 'o';
-        
-        p1Mark.setAttribute('data-flip', 'flip');
-        p2Mark.setAttribute('data-flip', 'reverse');
-
-        p1Label.textContent = 'Enter Player 1 Name';
-        p2Label.textContent = 'Enter Player 2 Name';
-
-        p1Input.setAttribute('placeholder', 'x-player');
-        p2Input.setAttribute('placeholder', 'o-player');
-
-        p1Input.value = '';
-        p2Input.value = '';
-
-        p2Input.disabled = false;
-
-        gameDetails.setPlayer1('x-player', 'x', 'user');
-        gameDetails.setPlayer1('o-player', 'o', 'user');
-        gameDetails.setGameMode('versus');
-    };
+    // Hides footer
+    footer.classList.add('hidden');
 
     // Adds back to mode Select function (start) --
     const backModeSelect = function () {
         // Slides back to mode select screen
         slider.classList.remove('mode-selected');
 
-        setDefaultPlayers();
+        // Revert changes in edit players screen to default upon back
+        gameDetails.setDefaultEditPlayers();
+        gameDetails.resetGameDetails();
+
+        // Show footer back
+        footer.classList.remove('hidden');
 
         // Remove event listener on back
         backModeBtn.removeEventListener('click', backModeSelect);
@@ -272,7 +282,7 @@ const chooseGameMode = function () {
 
     } else if (modeSelected === 'versus') {
         // Set edit players to default
-        setDefaultPlayers();
+        gameDetails.setDefaultEditPlayers();
     }
 }
 
@@ -408,7 +418,6 @@ const startGame = function (e) {
 
         // Slides to play board screen
         domElements.getElement().slider.classList.add('game-start'); 
-        
     }
 
     // Setup game screen depending on gameMode
@@ -613,7 +622,6 @@ const checkWin = (function () {
                     const cell = document.querySelector(`button[data-row='row${i}'][data-col='${4 - i}']`);
                     _winningCells.push(cell);
                 }
-
             }
         })();
 
@@ -831,10 +839,8 @@ const checkWin = (function () {
         return {_winDetected, _winner, _winningCells};
     }
 
-    
     return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore, predictWin, getWinStatus};
 })();
-
 
 // Change UI on mouse hover
 const hoverOnCell = function (e) {
@@ -976,7 +982,6 @@ const markCell = function (e) {
  
 const runAI = function (AI) {
     const {playCell} = domElements.getNodeList();
-    const {p2TurnBanner} = domElements.getElement();
 
     // Convert NodeList to Array
     const cellArray = Array.from(playCell);
@@ -1035,9 +1040,11 @@ const runAI = function (AI) {
             const computerWins = checkWin.predictWin(board, computer) === computer;
 
             if (computerWins) {
-                score = 1; // Computer wins
+                score = 1;
+
             } else if (playerWins) {
-                score = -1; // Player wins
+                score = -1;
+
             } else {
                 score = 0; // TIE 
             }
@@ -1058,9 +1065,7 @@ const runAI = function (AI) {
             }
             
             let bestScore;
-
             if (isMaximizing) {
-
                 let maxScore = -Infinity;
                 
                 for (let i = 0; i < 3; i++) {
@@ -1068,7 +1073,7 @@ const runAI = function (AI) {
                         // If a cell is available, evaluate
                         if (board[`row${i + 1}`][j] === '') {
                             board[`row${i + 1}`][j] = computer;
-                            // console.log(board);
+                           
                             const score = minimax(board, depth + 1, false);
 
                             board[`row${i + 1}`][j] = '';
@@ -1097,7 +1102,7 @@ const runAI = function (AI) {
                 }
                 bestScore = minScore;
             }
-            // console.log(board);
+
             return bestScore;
         }
 
@@ -1125,16 +1130,20 @@ const runAI = function (AI) {
               return bestCellMove;
        }
 
+       // Returns object with row and column value of used for DOM target
        const bestMoveTile = bestMove(boardState);
 
+       // Use bestMoveTile, filter rows then find the column
        const rowFilter = cellArray.filter(cell => cell.dataset.row === `row${bestMoveTile.row}`);
        const tileAI = rowFilter.find(cell => cell.dataset.col === `${bestMoveTile.col}`);
 
+       // Execute command to mark tile determined by the minimax AI
        markingExecution(tileAI);
     }
 
     if (AI === 'random') {
         randomAITurn();
+
     } else if (AI === 'minimax') {
         minimaxAITurn();
     }
@@ -1276,33 +1285,30 @@ const resetBoard = function (e) {
 
 // Return to Title Screen/ Mode Select 
 const returnMode = function () {
-    const {returnDialog, yesReturnBtn, noReturnBtn, slider} = domElements.getElement();
+    const {returnDialog, yesReturnBtn, noReturnBtn, slider, footer} = domElements.getElement();
 
     const initiateReturn = function () {
         const yes = this.value === 'yes';
 
         if (yes) {
-            const {p1Input, p1Mark, p2Input, p2Mark} = domElements.getElement();
             // Overwrites the Edit player values
-            
-            p1Input.value = '';
-            p1Input.setAttribute('placeholder', 'x-player');
-            p1Mark.value = 'x';
-
-            p2Input.value = '';
-            p2Input.setAttribute('placeholder', 'o-player');
-            p2Mark.value = 'o';
+            gameDetails.setDefaultEditPlayers();
 
             // Resets the defineGame Obj
             gameDetails.resetGameDetails();
 
             // Resets Board
+            // Note: argument 'this', so that resetBoard func 
+            // detect that it was triggered by return mode
             resetBoard(this);
 
             // Slides back to mode-select
             slider.classList.remove('game-start', 'mode-selected');
 
+            // Show footer back
+            footer.classList.remove('hidden');
         }
+        
         // Removes event listeners
         yesReturnBtn.removeEventListener('click', initiateReturn);
         noReturnBtn.removeEventListener('click', initiateReturn);
