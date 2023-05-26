@@ -168,6 +168,18 @@ const gameDetails = (function () {
         setLastWinner('');
     }
 
+    const getPlayerMark = function (player) {
+        let mark;
+
+        if (player === 'p1') {
+            mark = defineGame.player1.playerMark;
+        } else if (player === 'p2') {
+            mark = defineGame.player2.playerMark;
+        }
+
+        return mark;
+    }
+
     const p2Computer = function () {
         const p2 = defineGame.player2.player === 'computer';
         return p2;
@@ -186,7 +198,8 @@ const gameDetails = (function () {
         logScore,
         getScore,
         getGameDetails,
-        p2Computer
+        p2Computer,
+        getPlayerMark
     }
 })();
 
@@ -344,7 +357,7 @@ const playerTurnFlag = (function () {
     }
 
     const getTurnAI = function () {
-        const p2TurnMark = gameDetails.getGameDetails().player2.playerMark;
+        const p2TurnMark = gameDetails.getPlayerMark('p2');
         let turnAI = false;
 
         if (p2TurnMark === _playerTurn) {
@@ -462,19 +475,24 @@ const startGame = function (e) {
         const p2Computer = gameDetails.p2Computer();
         const turnAI = playerTurnFlag.getTurnAI();
         const randomAI = gameDetails.getGameMode() === 'random';
+        const minimaxAI = gameDetails.getGameMode() === 'minimax';
 
-        if (turnAI && p2Computer && randomAI ) {
-            runAI('random');
+        // Note: If minimax AI is first turn, random place mark
+        if (turnAI && p2Computer) {
+            if (randomAI || minimaxAI) {
+                runAI('random');
+            }
+
         } else {
+            // Add event listener if player is first turn
+            // Note: event was previously removed from reset
             const {playCell} = domElements.getNodeList();
             playCell.forEach(cell => {
                 cell.addEventListener('click', markCell);
                 cell.addEventListener('mouseenter', hoverOnCell);
                 cell.addEventListener('mouseleave', hoverOnCell);
-            })
+            });
         }
-
-
     })();
 }
 
@@ -536,6 +554,8 @@ const checkWin = (function () {
 
     let _winningCells = [];
 
+    // Note: this function does not check whole board, only check winning condition
+    // according to last player move
     const detectWinner = function (cellRow, cellCol, playerMark, currentPlayBoard) {
         // Note: Change cellCol to Array Index
         const cellColIndex = Number(cellCol) - 1;
@@ -692,14 +712,13 @@ const checkWin = (function () {
         }, 400);
     }
 
-    
     // Logs Scores and change ScoreBoard on end match
     const changeScore = function () {
         // Identify Players' marks then check if they won
         const {p1Score, p2Score, scoreBoard} = domElements.getElement();
 
-        const p1Mark = gameDetails.getGameDetails().player1.playerMark;
-        const p2Mark = gameDetails.getGameDetails().player2.playerMark;
+        const p1Mark = gameDetails.getPlayerMark('p1');
+        const p2Mark = gameDetails.getPlayerMark('p2');
 
         const p1Wins = p1Mark === _winner; // Saves true or false
         const p2Wins = p2Mark === _winner; // Saves true or false
@@ -761,7 +780,59 @@ const checkWin = (function () {
         showWinningCells(false);
     }
 
-    return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore};
+    // Used for minimax checking
+    const predictWin = function (board, playerMark) {
+        let winner = 'noWinner';
+        
+        // Check rows
+        for (let i = 1; i <= 3; i++) {
+            if (board[`row${i}`][0] === playerMark &&
+                board[`row${i}`][1] === playerMark &&
+                board[`row${i}`][2] === playerMark) {
+                    winner = playerMark;
+                }
+        }
+
+        // Check columns
+        for (let i = 0; i < 3; i++) {
+            if (board.row1[i] === playerMark &&
+                board.row2[i] === playerMark &&
+                board.row3[i] === playerMark) {
+                    winner = playerMark;
+                }
+        }
+
+        // Check diagonals left to right
+        if (board.row1[0] === playerMark &&
+            board.row2[1] === playerMark &&
+            board.row3[2] === playerMark) {
+                winner = playerMark;
+        }
+
+        // Check diagonals right to left
+        if (board.row1[2] === playerMark &&
+            board.row2[1] === playerMark &&
+            board.row3[0] === playerMark) {
+                winner = playerMark;
+        }
+
+        // Check if all spots are taken
+        const boardRows = Object.keys(board);
+        const freeCells = boardRows.some(row => board[row].includes(''));
+
+        if ((winner === 'noWinner') && !freeCells) {
+            winner = 'draw';
+        }
+
+        return winner;
+    }
+
+    const getWinStatus = function () {
+        return {_winDetected, _winner, _winningCells};
+    }
+
+    
+    return {detectWinner, showWinningCells, enlargeOptions, resetWin, changeScore, predictWin, getWinStatus};
 })();
 
 
@@ -889,13 +960,16 @@ const markCell = function (e) {
 
     // Setup for AI Turn
     const p2Computer = gameDetails.p2Computer();
-    if (p2Computer) {
-        const {gameMode} = gameDetails.getGameDetails();
-        const noWinner = winner === 'noWinner';
-        const turnAI = playerTurnFlag.getTurnAI();
+    const noWinner = winner === 'noWinner';
+    const turnAI = playerTurnFlag.getTurnAI();
+    const {gameMode} = gameDetails.getGameDetails();
 
-        if (gameMode === 'random' && turnAI && noWinner) {
+    if (p2Computer && turnAI && noWinner ) {
+        if (gameMode === 'random' ) {
             runAI('random');
+
+        } else if (gameMode === 'minimax') {
+            runAI('minimax');
         }
     } 
 }
@@ -920,14 +994,10 @@ const runAI = function (AI) {
         cell.removeEventListener('click', markCell);
     });
 
-    // Random AI choose a cell/ tile to mark
-    const randomAITurn = function () {
-        // AI chooses random cell to mark
-        const randomIndex = Math.floor(Math.random() * checkFreeCells().length);
-        const tileAI = checkFreeCells()[randomIndex];
-        
+    // Function contains execution/ algorithm for marking the board
+    const markingExecution = function (tile) {
         setTimeout(() => {
-            markCell(tileAI);
+            markCell(tile);
         }, 800);
 
         // Return eventListeners on the cells
@@ -941,11 +1011,134 @@ const runAI = function (AI) {
         }, 1200);
     }
 
+    // Random AI choose a cell/ tile to mark
+    const randomAITurn = function () {
+        // AI chooses random cell to mark
+        const randomIndex = Math.floor(Math.random() * checkFreeCells().length);
+        const tileAI = checkFreeCells()[randomIndex];
+        
+        markingExecution(tileAI);
+    }
+
+    // Minimax AI function
+    const minimaxAITurn = function () {
+        const player = gameDetails.getPlayerMark('p1');
+        const computer = gameDetails.getPlayerMark('p2');
+
+        const boardState = {...playBoard.getPlayBoard()};
+        
+        // Evaluate current board state and return scores   
+        const evaluate = function (board) {
+            let score;
+
+            const playerWins = checkWin.predictWin(board, player) === player;
+            const computerWins = checkWin.predictWin(board, computer) === computer;
+
+            if (computerWins) {
+                score = 1; // Computer wins
+            } else if (playerWins) {
+                score = -1; // Player wins
+            } else {
+                score = 0; // TIE 
+            }
+
+            return score;
+        }
+        
+        const minimax = function (board, depth, isMaximizing) {
+
+            let isGameOver;
+            if (checkWin.predictWin(board, player) !== 'noWinner' ||
+            checkWin.predictWin(board, computer) !== 'noWinner') {
+                isGameOver = true;
+            }
+
+            if (isGameOver) {
+                return evaluate(board);
+            }
+            
+            let bestScore;
+
+            if (isMaximizing) {
+
+                let maxScore = -Infinity;
+                
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        // If a cell is available, evaluate
+                        if (board[`row${i + 1}`][j] === '') {
+                            board[`row${i + 1}`][j] = computer;
+                            // console.log(board);
+                            const score = minimax(board, depth + 1, false);
+
+                            board[`row${i + 1}`][j] = '';
+
+                            maxScore = Math.max(maxScore, score);
+                        }
+                    }
+                }
+                bestScore = maxScore;
+
+            } else {
+                let minScore = Infinity;
+                
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (board[`row${i + 1}`][j] === '') {
+                            board[`row${i + 1}`][j] = player;
+
+                            const score = minimax(board, depth + 1, true);
+
+                            board[`row${i + 1}`][j] = '';
+
+                            minScore = Math.min(minScore, score);
+                        }
+                    }
+                }
+                bestScore = minScore;
+            }
+            // console.log(board);
+            return bestScore;
+        }
+
+       const bestMove = function (board) {
+            let bestScore = -Infinity;
+            let bestCellMove;
+
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                  if (board[`row${i + 1}`][j] === '') {   
+                    board[`row${i + 1}`][j] = computer;
+                    
+                    const score = minimax(board, 0, false);
+
+                    board[`row${i + 1}`][j] = '';
+                    
+                    if (score > bestScore) {
+                      bestScore = score;
+                      bestCellMove = { row: i + 1, col: j + 1 };
+                    }
+                  }
+                }
+              }
+              
+              return bestCellMove;
+       }
+
+       const bestMoveTile = bestMove(boardState);
+
+       const rowFilter = cellArray.filter(cell => cell.dataset.row === `row${bestMoveTile.row}`);
+       const tileAI = rowFilter.find(cell => cell.dataset.col === `${bestMoveTile.col}`);
+
+       markingExecution(tileAI);
+    }
+
     if (AI === 'random') {
         randomAITurn();
+    } else if (AI === 'minimax') {
+        minimaxAITurn();
     }
 };
-
 
 //  Reset game board on click of reset button
 const resetBoard = function (e) {
@@ -1041,7 +1234,6 @@ const resetBoard = function (e) {
             domElements.getElement().p1TurnBanner.removeAttribute('data-win');
             domElements.getElement().p2TurnBanner.removeAttribute('data-win');
         }, 300);
-    
     
         // Starts game
         // Note: startGame function do not initiate for return to Mode
@@ -1148,8 +1340,6 @@ const addEventFunctions = (function () {
     // Reset and return to Mode Buttons 
     domElements.getElement().resetBtn.addEventListener('click', resetBoard);
     domElements.getElement().returnModeBtn.addEventListener('click', returnMode);
-
-
 })();
 
 
