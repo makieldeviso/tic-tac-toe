@@ -61,6 +61,7 @@ const domElements = (function () {
             yesReturnBtn: document.querySelector('button#yes-return'),
             noReturnBtn: document.querySelector('button#no-return'),
 
+            header: document.querySelector('header'),
             footer: document.querySelector('footer')
         }
         
@@ -388,6 +389,7 @@ const playerTurnFlag = (function () {
 
 // Collect Data from user input and change gameDetails Obj to start game
 const startGame = function (e) {
+    // Conditional to detect if start game was triggered by clicking 'Start'
     if (e !== undefined) {
         // Set Player 1
         let p1Name = domElements.getElement().p1Input.value;
@@ -418,6 +420,9 @@ const startGame = function (e) {
 
         // Slides to play board screen
         domElements.getElement().slider.classList.add('game-start'); 
+
+        // Minimize header size and adjust main and footer
+        domElements.getElement().header.classList.add('resize');
     }
 
     // Setup game screen depending on gameMode
@@ -1285,7 +1290,7 @@ const resetBoard = function (e) {
 
 // Return to Title Screen/ Mode Select 
 const returnMode = function () {
-    const {returnDialog, yesReturnBtn, noReturnBtn, slider, footer} = domElements.getElement();
+    const {returnDialog, yesReturnBtn, noReturnBtn, slider, footer, header} = domElements.getElement();
 
     const initiateReturn = function () {
         const yes = this.value === 'yes';
@@ -1307,6 +1312,9 @@ const returnMode = function () {
 
             // Show footer back
             footer.classList.remove('hidden');
+
+            // Resize header, main and footer
+            header.classList.remove('resize');
         }
         
         // Removes event listeners

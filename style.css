@@ -10,7 +10,7 @@
 :root {
     --common-padding: calc(0.2rem + 1vw);
     --common-margin: calc(0.5rem + 1vw);
-    --title-font-size: calc(0.8rem + 1vw);
+    --title-font-size: calc(2rem + 1vw);
     --common-font-size: calc(1rem + 0.5vw);
     --title-font:'Orbitron', sans-serif;
     --common-font: 'Lato', sans-serif;
@@ -25,13 +25,18 @@
     --off-white: #F6F1F1;
     --dark-green: #192929;
     --dark-pink: #2b0b22;
-    --bg-color: rgba(5, 23, 37, 0.9);
+    /* --bg-color: rgba(5, 23, 37, 0.9); */
+    --bg-color: var(--darkest-color);
 
     --yellow-contrast: #FDBE34;
 
     --header-height: 10vh;
     --main-height: 82vh;
     --footer-height: 8vh;
+
+    --content-width: 100vw;
+    --slide-once: calc(-100vw);
+    --slide-twice: calc(-200vw);
 }
 
 button:hover {
@@ -40,10 +45,7 @@ button:hover {
 
 body {
     background-color: var(--darkest-color);
-    /* background-image: url(./images/bg.gif);
-    background-size: cover;
-    background-position: center;
-    background-repeat: none; */
+    min-width: 320px;
 }
 
 header {
@@ -51,11 +53,30 @@ header {
     padding: var(--common-padding);
     font-size: var(--title-font-size);
     /* margin: var(--common-margin) 0; */
-    background-color: rgba(5, 23, 37, 0.9);
+    background-color: var(--bg-color);
     height: var(--header-height);
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    transition: height 0.3s ease-in-out;
+}
+
+header.resize h1 {
+    font-size: calc(var(--title-font-size) * 0.5);
+}
+
+
+header.resize {
+    height: 5vh;
+}
+
+header.resize ~ main {
+    height: 95vh;
+}
+
+header.resize ~ footer {
+    height: 0;
 }
 
 header h1 {
@@ -70,6 +91,8 @@ header h1 {
     text-shadow: 0 0 20px var(--neon-blue);
     font-family: var(--title-font);
     vertical-align: middle;
+    font-size: var(--title-font-size);
+    transition: font-size 0.3s ease-in-out;
 }
 
 main {
@@ -78,6 +101,7 @@ main {
     overflow: hidden;
     background-color: var(--bg-color);
     height: var(--main-height);
+    transition: height 0.3s ease-in-out;
 }
 
 div#slider {
@@ -86,36 +110,28 @@ div#slider {
     flex-wrap: nowrap;
     flex: 0 0 100%;
     
-    width: 300vw;
+    width: calc(var(--content-width) * 3);
     height: max-content;
     transition: all 0.3s ease-in-out;
 }
 
 /* sliding mechanism (start) */
-section#mode-select {
-    width: 100vw;
-}
-
-section#edit-player {
-    width: 100vw;
-}
-
+section#mode-select, 
+section#edit-player,
 section#play-area {
-    width: 100vw;
+    width: var(--content-width);
 }
 
 /* Game Mode Selected -- */
 
 div#slider.mode-selected {
-    transform: translateX(-100vw);
+    transform: translateX(var(--slide-once));
 }
 
 /* Players were edited, user is shown the board */
 div#slider.mode-selected.game-start {
-    transform: translateX(-200vw);
+    transform: translateX(var(--slide-twice));
 }
-
-
 /* sliding mechanism (end) */
 
 
@@ -125,6 +141,7 @@ section#mode-select {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    row-gap: var(--common-margin);
 }
 
 section#mode-select h3 {
@@ -138,7 +155,8 @@ button.mode {
     padding: var(--common-padding) calc(var(--common-padding) * 5);
     margin: var(--common-margin);
     font-size: var(--common-font-size);
-    width: 60%;
+    width: 50vw;
+    min-width: max-content;
     
     border: 1px solid var(--neon-cyan);
     font-weight: bold;
@@ -211,6 +229,7 @@ section#edit-player p#game-mode{
     width: 100%;
     text-align: center;
     padding: var(--common-padding);
+    margin-bottom: calc(var(--common-margin) * 1.5);
     background: linear-gradient(0.25turn,
         var(--darkest-color),
         var(--dark-blue),
@@ -230,20 +249,25 @@ section#edit-player form {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: calc(var(--common-margin) * 2);
+    gap: calc(var(--common-margin) * 4);
     align-items: center;
     padding: var(--common-padding);
 }
 
 div.players {
-    width: 100%;
+    width: max-content;
     height: max-content;
     display: grid;
     grid-template-rows: 1fr 1fr;
     grid-template-columns: max-content max-content;
     align-items: center;
     justify-content: center;
-    gap: calc(var(--common-margin) * 0.5);
+    row-gap: var(--common-margin);
+    column-gap: calc(var(--common-margin) * 1.5);
+    border: 1px solid #394c5b;
+    border-radius: 15px 0 15px 0;
+    box-shadow: 0 0 2px 1px var(--dark-green);
+    padding: calc(var(--common-padding) * 2);
 }
 
 button.player-mark {
@@ -325,9 +349,8 @@ button#start {
     font-family: var(--stylized-font);
     font-weight: bold;
     color: var(--off-white);
-    width: 30%;
-    min-width: max-content;
-    padding: var(--common-padding);
+    width: max-content;
+    padding: calc(var(--common-padding) * 1.5) calc(var(--common-padding) * 2);
     border: 1px solid var(--neon-cyan);
     border-radius: 10px 0 10px 0;
     background-color: var(--dark-green);
@@ -389,7 +412,7 @@ div.banner p {
 
 div.avatar {
     width: max-content;
-    height: 50px;
+    height: calc(30px + 1vh);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -590,14 +613,14 @@ div#board[data-class='minimize'] {
 div.board-row {
     /* border: 1px solid black; */
     display: grid;
-    grid-template-columns: repeat(3, 100px);
+    grid-template-columns: repeat(3, 140px);
     margin: auto;
     gap: 3px;
 }
 
 button.play-cell {
-    width: 100px;
-    height: 100px;
+    width: 140px;
+    height: 140px;
     border: 1px solid #487094;
     background-color: black;
     background-position: center;
@@ -728,7 +751,7 @@ p#round-ask {
 
 div#options-cont {
     display: flex;
-    gap: calc(var(--common-margin) * 2);
+    gap: calc(var(--content-width) * 0.10);
     justify-content: center;
 }
 
@@ -828,6 +851,10 @@ div.msg-cont p {
     font-size: calc(var(--common-font-size) * 0.9);
 }
 
+div.msg-cont p#mode-warn {
+    display: flex;
+    flex-direction: column;
+}
 
 div.yn-cont {
     display: flex;
@@ -839,6 +866,7 @@ div.yn-cont {
 dialog#reset-dialog button.yn-btn,
 dialog#return-dialog button.yn-btn {
     width: calc(60px + 1vw);
+    min-width: max-content;
     height: max-content;
     padding: var(--common-padding);
     font-family: var(--stylized-font);
@@ -871,8 +899,9 @@ button.yn-btn#no-return:hover {
 footer {
     text-align: center;
     height: var(--footer-height);
-    transition: all 0.3s ease-in-out;
     overflow: hidden;
+    background-color: var(--bg-color);
+    transition: height 0.3s ease-in-out;
 }
 
 footer div {
@@ -883,6 +912,7 @@ footer div {
     flex-direction: column;
     gap: 5px;
     height: max-content;
+    transition: filter 0.3s ease-in-out;
 }
 
 footer p {
@@ -914,125 +944,490 @@ footer p#github-link:active {
     transform: scale(1.1);
 }
 
-footer.hidden {
+footer.hidden div#footer-cont {
     filter: opacity(0);
 }
 /* FOOTER (end) */
-
-@media only screen and (max-width: 375px) and (min-height: 500px) {
-    :root {
-        --title-font-size: calc(0.6rem + 1vw);
-        --common-font-size: calc(0.8rem + 0.5vw);
-    }
-
-    div.avatar p {
-        font-size: calc(var(--common-font-size) * 5);
-    }
-
-    div#p1-banner {
-        padding-left: var(--common-padding);
-    }
-
-    div#p2-banner {
-        padding-right: var(--common-padding);
-    }
-
-    div#p1-banner[data-win="win"] p.turn-name, 
-    div#p2-banner[data-win="win"] p.turn-name, 
-    div#p1-banner[data-win="draw"] p.turn-name, 
-    div#p2-banner[data-win="draw"] p.turn-name {
-        font-size: calc(var(--common-font-size) * 1.3);
-    }
-
-    div.board-row {
-        grid-template-columns: repeat(3, 30vw);
-    }
-
-    button.play-cell {
-        width: 30vw;
-        height: 30vw;
-    }
-
-    footer div {
-        width: 100%;
-    }
-}
-
-@media only screen and (min-width: 375px) {
-    section#play-area {
-        row-gap: calc(var(--common-margin) * 0.5);
-    }
-
-    div.players {
-        column-gap: calc(var(--common-margin) * 1.5);
-    }
-
-    div.avatar p {
-        font-size: calc(var(--common-font-size) * 5);
-    }
-
-    div#p1-banner[data-win="win"] p.turn-name, 
-    div#p2-banner[data-win="win"] p.turn-name, 
-    div#p1-banner[data-win="draw"] p.turn-name, 
-    div#p2-banner[data-win="draw"] p.turn-name {
-        font-size: calc(var(--common-font-size) * 1.3);
+@media (hover: none) {
+    /* Galaxy Fold */
+    @media only screen and (max-width: 375px) and (min-height: 500px) {
+        :root {
+            --title-font-size: calc(1.7rem + 1vw);
+            --common-font-size: calc(0.8rem + 0.5vw);
+        }
+        div.players {
+            padding: var(--common-padding);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 5);
+        }
+    
+        div#p1-banner {
+            padding-left: var(--common-padding);
+        }
+    
+        div#p2-banner {
+            padding-right: var(--common-padding);
+        }
+    
+        div#p1-banner[data-win="win"] p.turn-name, 
+        div#p2-banner[data-win="win"] p.turn-name, 
+        div#p1-banner[data-win="draw"] p.turn-name, 
+        div#p2-banner[data-win="draw"] p.turn-name {
+            font-size: calc(var(--common-font-size) * 1.3);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 30vw);
+        }
+    
+        button.play-cell {
+            width: 30vw;
+            height: 30vw;
+        }
+    
+        footer div {
+            width: 100%;
+        }
     }
     
+    /* Iphone SE */
+    @media only screen and (min-width: 375px) {
+        section#play-area {
+            row-gap: calc(var(--common-margin) * 0.5);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 5);
+        }
+    
+        div#p1-banner[data-win="win"] p.turn-name, 
+        div#p2-banner[data-win="win"] p.turn-name, 
+        div#p1-banner[data-win="draw"] p.turn-name, 
+        div#p2-banner[data-win="draw"] p.turn-name {
+            font-size: calc(var(--common-font-size) * 1.3);
+        }
+
+        div.board-row {
+            grid-template-columns: repeat(3, 30vw);
+        }
+    
+        button.play-cell {
+            width: 30vw;
+            height: 30vw;
+        }
+        
+    }
+    
+    /* iphone XR, 12 PRO, Pixel 5, Galaxy A51/71 */
+    @media only screen and (min-width: 390px) and (min-height: 840px) {
+        /* :root {
+            --title-font-size: calc(5rem + 1vw);
+            --common-font-size: calc(1.2rem + 0.5vw);
+            --main-height: 80vh;
+            --footer-height: 10vh;
+        } */
+    
+        section#edit-player {
+            row-gap: calc(var(--common-margin) * 1.1);
+        }
+    
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 3);
+        }
+    
+        button.player-mark {
+            width: calc(65px + 1vw);
+            height: calc(65px + 1vw);
+        }
+    
+        section#play-area {
+            row-gap: calc(var(--common-margin) * 1.1);
+        }
+    
+        button.mode {
+            font-size: calc(var(--common-font-size) * 1.2);
+            width: 60%;
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 30vw);
+        }
+    
+        button.play-cell {
+            width: 30vw;
+            height: 30vw;
+        }
+    
+        div#options button {
+            width: calc(60px + 1vw);
+            height: calc(60px + 1vw);
+        }
+    
+        footer div {
+            width: 100%;
+        }
+    
+        footer p,
+        footer a {
+            font-size: calc(var(--common-font-size) * 0.85);
+        }
+    }
+    
+    /* Galaxy S8+ */
+    @media only screen and (min-width: 360px) and (min-height: 740px) {
+        :root {
+            --title-font-size: calc(2rem + 1vw);
+            --common-font-size: calc(1rem + 0.5vw);
+        }
+        
+        section#edit-player {
+            row-gap: calc(var(--common-margin) * 1.1);
+        }
+    
+        button.player-mark {
+            width: calc(60px + 1vw);
+            height: calc(60px + 1vw);
+        }
+    
+        /* div#options button span {
+            font-size: var(--common-font-size);
+        } */
+    }
+    
+    /* Galaxy S20 Ultra */
+    @media only screen and (min-width: 412px) and (min-height: 915px) {
+        :root {
+            --title-font-size: calc(2.5rem + 1vw);
+            --common-font-size: calc(1.2rem + 0.5vw);
+        }
+    
+        div#options button {
+            width: calc(70px + 1vw);
+            height: calc(70px + 1vw);
+        }
+    }
+    
+    /* ipad mini, ipad air */
+    @media only screen and (min-width: 768px) and (min-height: 1024px) {
+        :root {
+            --title-font-size: calc(3.5rem + 1vw);
+            --common-font-size: calc(1.5rem + 0.5vw);
+        }
+    
+        button.mode {
+            width: 40%;
+            min-width: max-content;
+        }
+    
+        button.player-mark {
+            width: calc(80px + 1vw);
+            height: calc(80px + 1vw);
+        }
+    
+        div.avatar {
+            height: calc(65px + 1vh);
+        }
+        
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 7);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 25vw);
+        }
+    
+        button.play-cell {
+            width: 25vw;
+            height: 25vw;
+        }
+    
+        div.msg-cont {
+            min-width: 50vw;
+        }
+    
+        div#options button {
+            width: calc(80px + 1vw);
+            height: calc(80px + 1vw);
+        }
+    
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.8);
+        }
+    }
+    
+    /* Surface pro 7 */
+    @media only screen and (min-width: 912px) and (min-height: 1368px) { 
+        :root {
+            --title-font-size: calc(4rem + 1vw);
+            --common-font-size: calc(1.6rem + 0.5vw);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 25vw);
+        }
+    
+        button.play-cell {
+            width: 25vw;
+            height: 25vw;
+        }
+    
+        div.banner p {
+            font-size: calc(var(--common-font-size) * 1.5);
+        }
+    
+        div#p1-banner[data-win="win"] p.turn-name,
+        div#p2-banner[data-win="win"] p.turn-name, 
+        div#p1-banner[data-win="draw"] p.turn-name, 
+        div#p2-banner[data-win="draw"] p.turn-name {
+            font-size: calc(var(--common-font-size) * 1.6);
+        }
+    
+        div.avatar {
+            height: calc(60px + 1vh);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 7);
+        }
+    
+        div#options-cont {
+            gap: calc(var(--common-margin) * 3);
+        }
+    
+        div#options button {
+            width: calc(120px + 1vw);
+            height: calc(120px + 1vw);
+            gap: 10px;
+        }
+    
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.9);
+        }
+    
+        div.msg-cont {
+            min-width: 60vw;
+        }
+    
+        div.msg-cont p {
+            font-size: var(--common-font-size);
+        }
+    
+        dialog#reset-dialog button.yn-btn, dialog#return-dialog button.yn-btn {
+            width: calc(90px + 1vw);
+        }
+    }
+    
+    /* Surface Duo */
+    @media only screen and (min-width: 540px) and (min-height: 720px) {
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 3);
+        }
+    
+        div.avatar {
+            height: calc(40px + 1vh);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 7);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 23vw);
+        }
+    
+        button.play-cell {
+            width: 23vw;
+            height: 23vw;
+        }
+    
+        div.msg-cont {
+            min-width: 60vw;
+        }
+    }
+    
+    /* Nest Hub */
+    @media only screen and (min-width: 1024px) and (min-height: 600px) {
+        :root {
+            --title-font-size: calc(2rem + 1vw);
+            --common-font-size: calc(0.8rem + 0.5vw);
+    
+            --common-padding: calc(0.1rem + 0.5vw);
+            --common-margin: calc(0.4rem + 0.5vw);
+    
+    
+            --content-width: 60vw;
+            --slide-once: -60vw;
+            --slide-twice: -120vw;
+        }
+    
+        header, main, footer {
+            width: var(--content-width);
+            margin: auto;
+            border: 1px solid var(--neon-magenta);
+            border-top: none;
+            border-bottom: none;
+        }
+    
+    
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 2);
+        }
+    
+        button.player-mark {
+            width: calc(45px + 1vw);
+            height: calc(45px + 1vw);
+        }
+    
+        div.avatar {
+            height: calc(40px + 1vh);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 7);
+        }
+    
+        div#options button {
+            width: calc(45px + 1vw);
+            height: calc(45px + 1vw);
+        }
+    
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.6);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 100px);
+        }
+    
+        button.play-cell {
+            width: 100px;
+            height: 100px;
+        }
+    
+        div.msg-cont {
+            min-width: 25vw;
+        }
+    }
+    
+    /* Nest Hub Max */
+    @media only screen and (min-width: 1028px) and (max-height: 800px) {
+        :root {
+            --title-font-size: calc(2.5rem + 1vw);
+            --common-font-size: calc(1rem + 0.5vw);
+    
+            --common-padding: calc(0.1rem + 0.5vw);
+            --common-margin: calc(0.4rem + 0.5vw);
+    
+            --content-width: 60vw;
+            --slide-once: -60vw;
+            --slide-twice: -120vw;
+        }
+    
+    
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 3);
+        }
+    
+        button.player-mark {
+            width: calc(45px + 1vw);
+            height: calc(45px + 1vw);
+        }
+    
+        div.avatar {
+            height: calc(50px + 1vh);
+        }
+    
+        div.avatar p {
+            font-size: calc(var(--common-font-size) * 7);
+        }
+    
+        div#options button {
+            width: calc(60px + 1vw);
+            height: calc(60px + 1vw);
+        }
+    
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.8);
+        }
+    
+        div.board-row {
+            grid-template-columns: repeat(3, 140px);
+        }
+    
+        button.play-cell {
+            width: 140px;
+            height: 140px;
+        }
+    
+        div.msg-cont {
+            min-width: 30vw;
+        }
+    }
+
 }
 
-/* iphone XR, 12 PRO, Pixel 5 */
-@media only screen and (min-width: 390px) and (min-height: 840px) {
+
+/* Desktop */
+@media only screen and (min-width: 320px) {
     :root {
-        --title-font-size: calc(1rem + 1vw);
-        --common-font-size: calc(1.2rem + 0.5vw);
-        --main-height: 80vh;
-        --footer-height: 10vh;
+        /* --title-font-size: calc(2rem + 1vw);
+        --common-font-size: calc(0.8rem + 0.5vw);
+
+        --common-padding: calc(0.1rem + 0.5vw);
+        --common-margin: calc(0.4rem + 0.5vw); */
+
+        --content-width: 100vw;
+        --slide-once: -100vw;
+        --slide-twice: -200vw;
     }
 
-    section#edit-player {
-        row-gap: calc(var(--common-margin) * 1.1);
+    header, main, footer {
+        width: var(--content-width);
+        margin: auto;
+        border: 1px solid var(--neon-magenta);
+        border-top: none;
+        border-bottom: none;
     }
+
 
     section#edit-player form {
-        gap: calc(var(--common-margin) * 3);
+        gap: calc(var(--common-margin) * 2);
     }
 
     button.player-mark {
-        width: calc(60px + 1vw);
-        height: calc(60px + 1vw);
+        width: calc(45px + 1vw);
+        height: calc(45px + 1vw);
     }
 
-    section#play-area {
-        row-gap: calc(var(--common-margin) * 1.1);
+    div.avatar {
+        height: calc(40px + 1vh);
     }
 
-    button.mode {
-        font-size: calc(var(--common-font-size) * 1.2);
-        width: 65%;
-    }
-
-    div.board-row {
-        grid-template-columns: repeat(3, 30vw);
-    }
-
-    button.play-cell {
-        width: 30vw;
-        height: 30vw;
+    div.avatar p {
+        font-size: calc(var(--common-font-size) * 7);
     }
 
     div#options button {
-        width: calc(80px + 1vw);
-        height: calc(80px + 1vw);
+        width: calc(45px + 1vw);
+        height: calc(45px + 1vw);
     }
 
-
-    footer div {
-        width: 100%;
+    div#options button span {
+        font-size: calc(var(--common-font-size) * 0.6);
     }
 
-    footer p,
-    footer a {
-        font-size: calc(var(--common-font-size) * 0.85);
+    div.board-row {
+        grid-template-columns: repeat(3, 100px);
+    }
+
+    button.play-cell {
+        width: 100px;
+        height: 100px;
+    }
+
+    div.msg-cont {
+        min-width: 25vw;
     }
 }
-
