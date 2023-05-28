@@ -25,8 +25,7 @@
     --off-white: #F6F1F1;
     --dark-green: #192929;
     --dark-pink: #2b0b22;
-    /* --bg-color: rgba(5, 23, 37, 0.9); */
-    --bg-color: var(--darkest-color);
+    --bg-color: rgba(5, 23, 37, 0.95);
 
     --yellow-contrast: #FDBE34;
 
@@ -44,8 +43,22 @@ button:hover {
 }
 
 body {
-    background-color: var(--darkest-color);
-    min-width: 320px;
+    overflow: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    background-image: url('./images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.6);
 }
 
 header {
@@ -53,19 +66,18 @@ header {
     padding: var(--common-padding);
     font-size: var(--title-font-size);
     /* margin: var(--common-margin) 0; */
-    background-color: var(--bg-color);
+    background: var(--bg-color);
     height: var(--header-height);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    transition: height 0.3s ease-in-out;
+    /* transition: height 5s ease-in-out; */
 }
 
 header.resize h1 {
     font-size: calc(var(--title-font-size) * 0.5);
 }
-
 
 header.resize {
     height: 5vh;
@@ -99,9 +111,8 @@ main {
     padding-top: calc(var(--common-padding) * 1.5);
     display: flex;
     overflow: hidden;
-    background-color: var(--bg-color);
+    background: var(--bg-color);
     height: var(--main-height);
-    transition: height 0.3s ease-in-out;
 }
 
 div#slider {
@@ -112,7 +123,7 @@ div#slider {
     
     width: calc(var(--content-width) * 3);
     height: max-content;
-    transition: all 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out;
 }
 
 /* sliding mechanism (start) */
@@ -120,6 +131,7 @@ section#mode-select,
 section#edit-player,
 section#play-area {
     width: var(--content-width);
+    overflow: hidden;
 }
 
 /* Game Mode Selected -- */
@@ -163,7 +175,9 @@ button.mode {
     color: var(--off-white);
     border-radius: 10px 0 10px 0;
     
-    transition: all 0.2s ease-in-out;
+    transition: box-shadow 0.2s ease-in-out,
+        text-shadow 0.2s ease-in-out,
+        filter 0.2s ease-in-out;
     font-family: var(--stylized-font);
     background-color: var(--dark-green);
     filter: opacity(0.8);
@@ -268,6 +282,7 @@ div.players {
     border-radius: 15px 0 15px 0;
     box-shadow: 0 0 2px 1px var(--dark-green);
     padding: calc(var(--common-padding) * 2);
+    background-color: var(--darkest-color);
 }
 
 button.player-mark {
@@ -699,7 +714,7 @@ button.play-cell[data-win="win"][data-mark="o"] {
 button.play-cell[data-hover='x'] {
     background-image: url(./images/x-mark.png);
     /* box-shadow: inset 0 0 10px var(--neon-magenta); */
-    filter: opacity(0.5);
+    filter: opacity(0.8);
 }
 
 button.play-cell[data-hover='o'] {
@@ -753,6 +768,7 @@ div#options-cont {
     display: flex;
     gap: calc(var(--content-width) * 0.10);
     justify-content: center;
+    padding: var(--common-padding);
 }
 
 div#options button {
@@ -900,8 +916,7 @@ footer {
     text-align: center;
     height: var(--footer-height);
     overflow: hidden;
-    background-color: var(--bg-color);
-    transition: height 0.3s ease-in-out;
+    background: var(--bg-color);
 }
 
 footer div {
@@ -947,8 +962,37 @@ footer p#github-link:active {
 footer.hidden div#footer-cont {
     filter: opacity(0);
 }
+
 /* FOOTER (end) */
 @media (hover: none) {
+    /* Remove hover effects on touch devices (start) */
+    button.mode,
+    button#start,
+    div#options button {
+        text-shadow: 0 0 3px var(--neon-cyan);
+        box-shadow: 0 0 3px 1px var(--neon-cyan);
+        filter: opacity(1);
+    }
+
+    footer p#github-link {
+        filter: opacity(1);
+        text-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    dialog#reset-dialog button.yn-btn, 
+    dialog#return-dialog button.yn-btn,
+    dialog#reset-dialog button.yn-btn#no-reset, 
+    dialog#return-dialog button.yn-btn#no-return {
+        filter: opacity(1);
+        text-shadow: 0 0 3px var(--neon-magenta);
+        box-shadow: 0 0 3px 1px var(--neon-magenta);
+    }
+
+    div#options[data-class="enlarge"] p#round-ask {
+        visibility: hidden;
+    }
+     /* Remove hover effects on touch devices (end) */
+
     /* Galaxy Fold */
     @media only screen and (max-width: 375px) and (min-height: 500px) {
         :root {
@@ -1265,9 +1309,6 @@ footer.hidden div#footer-cont {
         header, main, footer {
             width: var(--content-width);
             margin: auto;
-            border: 1px solid var(--neon-magenta);
-            border-top: none;
-            border-bottom: none;
         }
     
     
@@ -1370,64 +1411,220 @@ footer.hidden div#footer-cont {
 
 
 /* Desktop */
-@media only screen and (min-width: 320px) {
-    :root {
-        /* --title-font-size: calc(2rem + 1vw);
-        --common-font-size: calc(0.8rem + 0.5vw);
+@media (hover: hover) {
+    /* minimum resize - 400px  */
+    @media only screen and (max-width: 400px) {
+        :root {
+            --title-font-size: 2.5rem;
+            --common-font-size: 1rem;
 
-        --common-padding: calc(0.1rem + 0.5vw);
-        --common-margin: calc(0.4rem + 0.5vw); */
+            --common-padding: 5px;
+            --common-margin: 10px;
 
-        --content-width: 100vw;
-        --slide-once: -100vw;
-        --slide-twice: -200vw;
+            --content-width: 400px;
+            --slide-once: calc(-400px);
+            --slide-twice: calc(-800px);
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        header, main, footer {
+            min-width: 400px;
+        }
+
+        main {
+            justify-content: flex-start;
+        }
+        
+        div#slider {
+            min-width: 1200px;
+        }
+
+        button.mode {
+            width: 150px;
+        }
+
+        section#mode-select {
+            min-width: 400px;
+            overflow: hidden;
+        }
+
+        section#edit-player  {
+            min-width: 400px;
+            overflow: hidden;
+        }
+
+        section#play-area {
+            min-width: 400px;
+            overflow: hidden;
+        } 
+
+        div.board-row {
+            grid-template-columns: repeat(3, 100px);
+        }
+    
+        button.play-cell {
+            width: 100px;
+            height: 100px;
+        }
+
+        dialog.warning-modal {
+            min-width: 300px;
+            margin: auto 50px;
+        }
     }
 
-    header, main, footer {
-        width: var(--content-width);
-        margin: auto;
-        border: 1px solid var(--neon-magenta);
-        border-top: none;
-        border-bottom: none;
+    /* 400px + */
+    @media only screen and (min-width: 400px) {
+        :root {
+            --common-padding: calc(5px + 0.5vw);
+            --common-margin: calc(10px + 0.5vw);
+
+            --title-font-size: calc(2rem + 1vw);
+            --common-font-size: calc(0.8rem + 0.5vw);
+        }
+
+        section#mode-select {
+            row-gap: calc(5px + 0.5vh);
+        }   
+
+        button.mode {
+            width: calc(150px + 1vw);
+        }
+
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 1.5);
+        }
+
+        div.players {
+            padding: calc(var(--common-padding) * 1.3);
+            row-gap: calc(var(--common-margin) * 0.5);
+        }
+
+        div.board-row {
+            grid-template-columns: repeat(3, 100px);
+        }
+    
+        button.play-cell {
+            width: 100px;
+            height: 100px;
+        }
+
+        button#start {
+            margin-top: calc(var(--common-margin) * 1.5);
+            padding: calc(var(--common-padding) * 1.3);
+        }
+
+        section#play-area {
+            row-gap: calc(var(--common-margin) * 0.5);
+        }
+
+        div#options button {
+            width: calc(50px + 1vw);
+            height: calc(50px + 1vw);
+        }
+
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.7);
+        }
     }
 
+    /* 768px + */
+    @media only screen and (min-width: 768px) {
+        :root {
+            --common-padding: calc(5px + 0.5vw);
+            --common-margin: calc(10px + 0.5vw);
 
-    section#edit-player form {
-        gap: calc(var(--common-margin) * 2);
+            --title-font-size: calc(2rem + 1vw);
+            --common-font-size: calc(0.8rem + 0.5vw);
+
+            --content-width: 600px;
+            --slide-once: calc(-600px);
+            --slide-twice: calc(-1200px);
+        }
+
+        section#mode-select {
+            row-gap: 0;
+        }   
+
+        button.mode {
+            width: calc(150px + 1vw);
+        }
+
+        header, main, footer {
+            margin: auto;
+            width: var(--content-width);
+        }
+
+        section#edit-player form {
+            gap: calc(var(--common-margin) * 1.5);
+        }
+
+        div.players {
+            padding: var(--common-padding);
+            row-gap: calc(var(--common-margin) * 0.5);
+        }
+
+        div.avatar {
+            height: calc(50px + 1vh);
+        }
+
+        div.board-row {
+            grid-template-columns: repeat(3, 110px);
+        }
+    
+        button.play-cell {
+            width: 110px;
+            height: 110px;
+        }
+
+        button#start {
+            margin-top: calc(var(--common-margin) * 1.5);
+            padding: var(--common-padding);
+        }
+
+        section#play-area {
+            row-gap: calc(var(--common-margin) * 0.5);
+        }
+
+        div#options button {
+            width: calc(50px + 1vw);
+            height: calc(50px + 1vw);
+        }
+
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.7);
+        }
     }
 
-    button.player-mark {
-        width: calc(45px + 1vw);
-        height: calc(45px + 1vw);
-    }
+    /* 1440px + */
+    @media only screen and (min-width: 1440px) {
+        :root {
+            --common-padding: calc(5px + 0.3vw);
+            --common-margin: calc(10px + 0.3vw);
 
-    div.avatar {
-        height: calc(40px + 1vh);
-    }
+            --title-font-size: calc(2rem + 0.5vw);
+            --common-font-size: calc(0.8rem + 0.25vw);
 
-    div.avatar p {
-        font-size: calc(var(--common-font-size) * 7);
-    }
+            --content-width: 800px;
+            --slide-once: calc(-800px);
+            --slide-twice: calc(-1600px);
+        }
 
-    div#options button {
-        width: calc(45px + 1vw);
-        height: calc(45px + 1vw);
-    }
+        div.board-row {
+            grid-template-columns: repeat(3, 120px);
+        }
+    
+        button.play-cell {
+            width: 120px;
+            height: 120px;
+        }
 
-    div#options button span {
-        font-size: calc(var(--common-font-size) * 0.6);
-    }
-
-    div.board-row {
-        grid-template-columns: repeat(3, 100px);
-    }
-
-    button.play-cell {
-        width: 100px;
-        height: 100px;
-    }
-
-    div.msg-cont {
-        min-width: 25vw;
+        div#options button span {
+            font-size: calc(var(--common-font-size) * 0.8);
+        }
     }
 }
+
