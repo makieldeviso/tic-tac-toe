@@ -8,7 +8,7 @@
     <meta name="description" content="A tic-tac-toe Webpage">
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
-    <script src="main.js" defer></script>
+    <script src="index.js" defer></script>
     <script src="https://kit.fontawesome.com/ff4bf87dd5.js" crossorigin="anonymous"></script>
     <title>Tic-Tac-Toe</title>
 </head>
@@ -19,14 +19,10 @@
 
     <main>
         <div id="slider">
-
             <section id="mode-select">
-                <h3>- Select Mode -</h3>
-                
+                <h3><span>-</span> Select Mode <span>-</span></h3>
                     <button class="mode" value="versus">VERSUS</button>
-                
                     <button class="mode" value="random">RANDOM</button>
-    
                     <button class="mode" value="minimax">MINIMAX</button>
             </section>
     
@@ -38,8 +34,9 @@
                     <p id="game-mode">VERSUS MODE</p>
                 </div>
                 
-                <h3>- Edit Players -</h3>
-                <form id='edit-form' action="">
+                <h3><span>-</span> Edit Players <span>-</span></h3>
+
+                <form id='edit-form'>
                     <div class="players" id="player1">
                         <button 
                             type="button"
@@ -73,14 +70,12 @@
                     </div>
     
                     <button type="button" id="start">START</button>
-    
                 </form>
             </section>
     
             <section id="play-area">
-
+                <h3 style="display: none">Play Area</h3>
                 <div id="turn-banner">
-
                     <div class="banner" data-player="x" data-shown="shown" id="p1-banner">
                         <div id="p1-avatar" class="avatar">
                             <p>X</p>
@@ -100,7 +95,6 @@
                     <p id="p1-score" data-player="x">0</p>
                     <p>-</p>
                     <p id="p2-score" data-player="o">0</p>
-
                 </div>
 
                 <div id="board">
@@ -122,7 +116,6 @@
                         <button class="play-cell" data-row="row3" data-col="3"></button>
                     </div>
                 </div>
-
 
                 <div id="options" data-class="">
                     <p id="round-ask">&nbsp;</p>
@@ -166,7 +159,6 @@
                         </div>
                     </dialog>
                 </div>
-
             </section>
         </div>
     </main>
@@ -176,7 +168,6 @@
             <p>Copyright <i class="fa-regular fa-copyright"></i> 2023 - Fred Mark Baldeviso</p>
             <p id="github-link"><a href="https://github.com/makieldeviso">makieldeviso <i class="fa-brands fa-github"></i></a></p>
         </div>
-
     </footer>
 </body>
 </html>

@@ -483,8 +483,7 @@ const startGame = function (e) {
 
         showDefaultBanner(p1FirstPlayer, p1TurnBanner);
         showDefaultBanner(p2FirstPlayer, p2TurnBanner);
-
-        
+ 
         // Checks if p2 is computer and AI is first turn
         const p2Computer = gameDetails.p2Computer();
         const turnAI = playerTurnFlag.getTurnAI();
@@ -511,7 +510,6 @@ const startGame = function (e) {
 }
 
 const playBoard = (function () {
-    
     const _playBoard = {
         row1: ['', '', ''],
         row2: ['', '', ''],
