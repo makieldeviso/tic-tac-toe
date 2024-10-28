@@ -68,6 +68,10 @@ const domElements = (function () {
         return elements;
     }
 
+    // Update footer content
+    const footerYear = document.querySelector('#footer-year');
+    footerYear.textContent = (new Date()).getFullYear();
+
     return {getNodeList, getElement}
 })();
 
